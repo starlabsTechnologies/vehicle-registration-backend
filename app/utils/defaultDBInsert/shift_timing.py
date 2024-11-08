@@ -1,8 +1,6 @@
-from sqlalchemy.orm import Session
 from app.schema.shiftTiming import ShiftTiming
 from app.config.db_config import SessionLocal
 from datetime import time
-from fastapi import Depends
 
 def automate_saving_default_shifts():
     db=SessionLocal() 

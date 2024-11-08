@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from dotenv import load_dotenv
 from app.routes.route import router
 import uvicorn
+from app.utils.defaultDBInsert.master_user import automate_saving_master_user
 from server import initialize_db
 from app.middlewares.corsMiddleware import add_middlewares
 
@@ -17,6 +18,8 @@ app.include_router(router)
 def start_server():
     try:
         initialize_db()
+
+        automate_saving_master_user()
 
         PORT = int(os.getenv("PORT", 8000))
         print("Server running on Port",PORT)
