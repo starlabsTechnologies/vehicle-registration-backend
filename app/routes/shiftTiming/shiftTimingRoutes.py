@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
 from app.config.db_config import get_db
-from app.schema.shiftTiming import ShiftTiming
 from sqlalchemy.orm import Session
 from app.models.shiftTimingBase import ShiftTimingResponse,ShiftTimingUpdate
 from typing import List

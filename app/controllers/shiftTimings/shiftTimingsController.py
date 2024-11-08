@@ -1,15 +1,18 @@
 from app.services.shiftTimings.shiftTimingServices import getShifts, updateShifts
 from app.models.shiftTimingBase import ShiftTimingResponse,ShiftTimingUpdate
 from sqlalchemy.orm import Session
-from fastapi import HTTPException
-from datetime import datetime, timedelta, time, timezone
+from fastapi.responses import JSONResponse
+from datetime import datetime, timedelta
 from typing import List
 
 def getShiftTimingsController(db:Session) -> List[ShiftTimingResponse] :
     shift_timings=getShifts(db)
 
     if not shift_timings:
-        return HTTPException(status_code=404,detail='No Shift Timings Found')
+        return JSONResponse(
+                content={"message": "No Shift Timings Found"},
+                status_code=404
+            )
     
     return shift_timings
 
@@ -25,16 +28,25 @@ def updateShiftTimingsController(db:Session,shift_timings: List[ShiftTimingUpdat
             time_diff = timedelta(days=1) + time_diff 
 
         if(time_diff < timedelta(hours=7,minutes=59,seconds=59)):
-            raise HTTPException(status_code=400,detail='Time difference should be exactly 8 hours')
+            return JSONResponse(
+                content={"message": "Time difference should be exactly 8 hours"},
+                status_code=400
+            )
         
         if(previous_end_time and shifts.from_time<=previous_end_time):
-            raise HTTPException(status_code=400,detail='Shift timings shouldnot overlap')
+            return JSONResponse(
+                content={"message": "Shift timings shouldnot overlap"},
+                status_code=400
+            )
         
         previous_end_time=shifts.to_time
 
     updated=updateShifts(db,shift_timings)
 
     if not updated:
-        raise HTTPException(status_code=404,detail='Shift not found')
+        return JSONResponse(
+                content={"message": "Shift not found"},
+                status_code=404
+            )
     
     return getShifts(db)
