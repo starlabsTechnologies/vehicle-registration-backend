@@ -1,0 +1,8 @@
+pydantic==2.8.2
+PyMySQL==1.1.1
+python-dotenv==1.0.1
+requests==2.32.3
+SQLAlchemy==2.0.32
+tortoise-orm==0.21.6
+typing==3.7.4.3
+typing_extensions==4.12.2
