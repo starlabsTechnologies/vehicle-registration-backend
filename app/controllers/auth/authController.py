@@ -18,6 +18,7 @@ def logUserInController(userInfo:UserLogin,db:Session) -> UserInfoResponse:
             status_code=401
         )
     
+    user.message = "User logged in"
     return user
 
 def createUserController(userInfo: CreateUser,db:Session) -> JSONResponse:
@@ -26,8 +27,14 @@ def createUserController(userInfo: CreateUser,db:Session) -> JSONResponse:
             content={"message": "Please Enter Password and UserName"},
             status_code=400
         )
+    
+    if((not userInfo.authType) or (not userInfo.desigantion)):
+        return JSONResponse(
+            content={"message": "Please Enter Authtype and designation"},
+            status_code=400
+        )
 
-    if(len(userInfo.mobileNumber)!=10):
+    if(len(userInfo.mobileNumber)!=10 and len(userInfo.mobileNumber)!=0):
         return JSONResponse(
             content={"message": "Mobile Number should be 10 digits exactly!"},
             status_code=400
@@ -52,7 +59,7 @@ def createUserController(userInfo: CreateUser,db:Session) -> JSONResponse:
     if not newUser:
         return JSONResponse(
             content={"message": "Error creating new User"},
-            status_code=404
+            status_code=400
         )
 
     return JSONResponse(

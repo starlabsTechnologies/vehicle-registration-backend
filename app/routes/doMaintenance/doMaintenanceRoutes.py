@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
 from app.config.db_config import get_db
 from sqlalchemy.orm import Session
-from app.models.doMaintenanceBase import DONumberResponse,CreateDONumber,SuccessResponse
-from app.controllers.doMaintenance.doMaintenanceControllers import createDoNumberController,deleteDONumberController,getDoDataController
+from app.models.doMaintenanceBase import DONumberResponse,CreateDONumber,SuccessResponse,UpdateDONumber
+from app.controllers.doMaintenance.doMaintenanceControllers import createDoNumberController,deleteDONumberController,getDoDataController,updateDONumberController
 
 doMaintenance_router=APIRouter()
 
@@ -18,19 +18,35 @@ def createDoNumber(doInfo:CreateDONumber,db:Session=Depends(get_db)):
 def deleteDoNumber(doNumber:str,db:Session=Depends(get_db)):
     return deleteDONumberController(doNumber,db)
 
+@doMaintenance_router.patch('/do-maintenance',response_model=SuccessResponse)
+def updateDONumber(doInfo:UpdateDONumber,db:Session=Depends(get_db)):
+    return updateDONumberController(doInfo,db)
+
 # {
 #   "doNumber": "1212",
-#   "weighbridgeNo": "",
+#   "weighbridgeNo":"2",
 #   "transporter": "11",
 #   "permissidoNameon": "",
 #   "validThrough": "",
-#   "validityTill": "",
-#   "allotedQty": 0.0,
-#   "releasedQty": 0.0,
+#   "validityTill": "2",
+#   "allotedQty": 2.0,
+#   "releasedQty": 2.0,
 #   "leftQty": 0.0,
 #   "doAddress": "",
 #   "doRoute": "",
 #   "salesOrder": "",
 #   "customerId": "",
 #   "mobileNumber": "1234567890"
+# }
+
+# {
+#   "doNumber": "1212",
+#   "weighbridgeNo": "1212",
+#   "transporter": "1212",
+#   "validityTill": "1212",
+#   "allotedQty": 2.5,
+#   "releasedQty": 3.0,
+#   "doRoute": "1212",
+#   "salesOrder": "1212",
+#   "mobileNumber": "string"
 # }

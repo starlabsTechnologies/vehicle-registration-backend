@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from app.schema.doMaintenance import DoData
-from app.models.doMaintenanceBase import CreateDONumber,DONumberResponse
+from app.models.doMaintenanceBase import CreateDONumber,DONumberResponse, UpdateDONumber
 
 def getDoDataByDoNumber(doNumber:str,db:Session) -> DONumberResponse:
     doData=db.query(DoData).filter_by(doNumber=doNumber).one_or_none()
@@ -38,7 +38,7 @@ def createDONumber(doInfo:CreateDONumber,db:Session) -> bool:
         validityTill=doInfo.validityTill,
         allotedQty=doInfo.allotedQty,
         releasedQty=doInfo.releasedQty,
-        leftQty=doInfo.leftQty,
+        leftQty=doInfo.allotedQty-doInfo.releasedQty,
         doAddress=doInfo.doAddress,
         doRoute=doInfo.doRoute,
         salesOrder=doInfo.salesOrder,
@@ -54,6 +54,24 @@ def createDONumber(doInfo:CreateDONumber,db:Session) -> bool:
         return True
     
     return False
+
+def updateDONumber(doInfo:UpdateDONumber,db:Session) -> bool:
+    doData=db.query(DoData).filter_by(doNumber=doInfo.doNumber).one_or_none()
+
+    if doData is None:
+        return False
+    
+    doData.weighbridgeNo=doInfo.weighbridgeNo
+    doData.transporter=doInfo.transporter
+    doData.validityTill=doInfo.validityTill
+    doData.allotedQty=doInfo.allotedQty
+    doData.releasedQty=doInfo.releasedQty
+    doData.doRoute=doInfo.doRoute
+    doData.salesOrder=doInfo.salesOrder
+    doData.mobileNumber=doInfo.mobileNumber
+
+    db.commit()
+    return True
 
 def deleteDONumber(doNumber:str,db:Session) -> bool:
     doData=db.query(DoData).filter_by(doNumber=doNumber).one_or_none()

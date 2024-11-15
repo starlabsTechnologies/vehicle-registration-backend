@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-from datetime import datetime
 from typing import Optional
 from enum import Enum
 
@@ -20,12 +19,20 @@ class CreateUser(BaseModel):
     password:str
     authType:AuthTypeEnum
     empId:Optional[str]=None
-    fullName:Optional[str]=None
+    fullName:str
     email:Optional[str]=None
-    desigantion:Optional[str]=None
+    desigantion:str
     Address:Optional[str]=None
     mobileNumber:Optional[str]=None
     organisation:Optional[str]=None
+
+class EditUser(BaseModel):
+    username:str
+    password:str
+    fullName:str
+    email:str
+    Address:str
+    mobileNumber:str
 
 class UserInfoResponse(BaseModel):
     id:str
@@ -39,8 +46,7 @@ class UserInfoResponse(BaseModel):
     Address:Optional[str]=None
     mobileNumber:Optional[str]=None
     organisation:Optional[str]=None
-    createdAt:datetime
-    updatedAt:datetime
+    message:Optional[str]=None
 
     class Config:
         orm_mode = True
