@@ -19,7 +19,7 @@ class SuccessResponse(BaseModel):
 class CreateVehicleRegistration(BaseModel):
     rfidTag:str
     typeOfVehicle:VehicleTypeEnum
-    vehicleNumber:Optional[str]=None
+    vehicleNumber:str
     doNumber:Optional[str]=None
     transporter:Optional[str]=None
     driverOwner:Optional[str]=None
@@ -27,7 +27,7 @@ class CreateVehicleRegistration(BaseModel):
     visitPurpose:Optional[str]=None
     placeToVisit:Optional[str]=None
     personToVisit:Optional[str]=None
-    validityTill:Optional[str]=None
+    validityTill:str
     section:Optional[str]=None
     registerDate: str = Field(default_factory=lambda: datetime.now().strftime('%Y-%m-%d'))
     registerTime: str = Field(default_factory=lambda: datetime.now().strftime('%H:%M:%S'))

@@ -1,53 +1,39 @@
-from app.services.blockUser.blockUserServices import authorizeUser,AuthResult,changeBlacklistStatus
-from app.models.allotedTagsBase import AuthorizeUser,BlockUser,SuccessResponse
+from app.services.blockUser.blockUserServices import changeBlacklistStatus
+from app.models.allotedTagsBase import BlockUser,SuccessResponse
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
-
-def authorizeUserController(userInfo:AuthorizeUser,db:Session) -> SuccessResponse:
-    user=authorizeUser(userInfo.username,userInfo.password,db)
-
-    if user is AuthResult.USER_NOT_FOUND:
-        return JSONResponse(
-            content={"message":"User Not Found","isAuthorized":False},
-            status_code=404
-        )
-    
-    if user is AuthResult.INCORRECT_PASSWORD:
-        return JSONResponse(
-            content={"message":"Incorrect Password","isAuthorized":False},
-            status_code=401
-        )
-    
-    if user is AuthResult.UNAUTHORIZED_ACCESS:
-        return JSONResponse(
-            content={"message":"User is not authorized to change credentials.","isAuthorized":False},
-            status_code=403
-        )
-    
-    return SuccessResponse(
-        message="User is Authorized",
-        isAuthorized=True
-    )
+from app.utils.logger import logger
 
 def blockUserController(userInfo:BlockUser,db:Session) -> SuccessResponse:
-    user=changeBlacklistStatus(userInfo.rfidTag,userInfo.vehicleNo,userInfo.action,db)
+    try:
+        user=changeBlacklistStatus(userInfo.rfidTag,userInfo.vehicleNo,userInfo.action,db)
 
-    if user is None:
-        return JSONResponse(
-            content={"message":"User Not Found","isBlocked":False},
-            status_code=404
+        if user is None:
+            logger.warning(f"User not found: {userInfo.rfidTag}")
+            return JSONResponse(
+                content={"message":"User Not Found","isBlocked":False},
+                status_code=404
+            )
+        
+        if user is False:
+            logger.warning(f"User is already {userInfo.action}.")
+            return JSONResponse(
+                content={"message":f"User is already {userInfo.action}.","isBlocked":False},
+                status_code=400
+            )
+        
+        logger.info("User status updated successfully.")
+        return SuccessResponse(
+            message="User status updated successfully.",
+            isBlocked=True
         )
     
-    if user is False: 
+    except Exception as error:
+        logger.error(f"Error occurred while blocking user: {error}")
         return JSONResponse(
-            content={"message":f"User is already {userInfo.action}.","isBlocked":False},
-            status_code=400
+            content={"message": "Error occurred while blocking user"},
+            status_code=500
         )
-    
-    return SuccessResponse(
-        message="User status updated successfully.",
-        isBlocked=True
-    ) 
 
 
 # 52b337794fc6143f

@@ -1,4 +1,4 @@
-from app.services.internalRfid.internalRfidServices import getVehicleReg,createVehicleReg,editVehicleReg,deleteVehicleReg
+from app.services.externalRfid.externalRfidServices import getVehicleReg,createVehicleReg,editVehicleReg,deleteVehicleReg
 from app.models.vehicleRegistrationBase import VehicleRegistrationResponse,CreateVehicleRegistration,EditVehicleRegistration,DeleteVehicleRegistration,SuccessResponse
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse

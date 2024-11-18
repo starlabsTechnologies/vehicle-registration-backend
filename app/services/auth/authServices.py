@@ -1,8 +1,35 @@
 from sqlalchemy.orm import Session
-from app.schema.userInfo import UserInfo
+from app.schema.userInfo import UserInfo, AuthTypeEnum
 from app.models.userInfoBase import UserInfoResponse,CreateUser
 import bcrypt
+from enum import Enum
 from typing import Optional, Union
+
+class AuthResult(Enum):
+    USER_NOT_FOUND = "User not found"
+    INCORRECT_PASSWORD = "Incorrect password"
+    UNAUTHORIZED_ACCESS = "Unauthorized access"
+    AUTHORIZED = "Authorized"
+
+def authorizeUser(username:str,password:str,db:Session) -> AuthResult:
+    user=db.query(UserInfo).filter_by(username=username).one_or_none()
+
+    if user is None:
+        return AuthResult.USER_NOT_FOUND
+    
+    bytes_password = password.encode('utf-8')
+    hashed_password = user.password.encode('utf-8')
+    result=bcrypt.checkpw(bytes_password,hashed_password)
+
+    if not result:
+        return AuthResult.INCORRECT_PASSWORD
+    
+    isAuthorized=user.authType in [AuthTypeEnum.ADMIN,AuthTypeEnum.MASTER]
+
+    if(isAuthorized):
+        return AuthResult.AUTHORIZED
+    
+    return AuthResult.UNAUTHORIZED_ACCESS
 
 def getUserByUserName(username:str,db:Session) -> Optional[UserInfoResponse]:
     user = db.query(UserInfo).filter_by(username=username).one_or_none()
@@ -13,7 +40,6 @@ def getUserByUserName(username:str,db:Session) -> Optional[UserInfoResponse]:
     return UserInfoResponse(
         id=str(user.id),
         username=user.username,
-        password=user.password,
         authType=user.authType,
         empId=user.empId,
         fullName=user.fullName,
@@ -27,13 +53,14 @@ def getUserByUserName(username:str,db:Session) -> Optional[UserInfoResponse]:
     )
 
 def logUserIn(username:str,password:str,db:Session) -> Union[UserInfoResponse, bool, None]:
-    user=getUserByUserName(username,db)
+    user = getUserByUserName(username,db)
+    db_user=db.query(UserInfo).filter_by(username=username).one_or_none()
 
     if user is None:
         return None
     
     bytes_password = password.encode('utf-8')
-    hashed_password = user.password.encode('utf-8')
+    hashed_password = db_user.password.encode('utf-8')
     result=bcrypt.checkpw(bytes_password,hashed_password)
 
     if result:

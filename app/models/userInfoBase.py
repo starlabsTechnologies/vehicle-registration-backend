@@ -7,8 +7,16 @@ class AuthTypeEnum(str,Enum):
     USER = "User"
     MASTER = "Master"
 
+class AuthorizeUser(BaseModel):
+    username:str
+    password:str
+
 class SuccessResponse(BaseModel):
     message:str
+
+class AuthResponse(BaseModel):
+    message:str
+    isAuthorized:Optional[bool]=False
 
 class UserLogin(BaseModel):
     username:str
@@ -37,7 +45,6 @@ class EditUser(BaseModel):
 class UserInfoResponse(BaseModel):
     id:str
     username:str
-    password:str
     authType:AuthTypeEnum
     empId:Optional[str]=None
     fullName:Optional[str]=None
