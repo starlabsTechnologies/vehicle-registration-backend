@@ -4,21 +4,21 @@ from sqlalchemy.orm import Session
 from app.models.vehicleRegistrationBase import VehicleRegistrationResponse,CreateVehicleRegistration,EditVehicleRegistration,DeleteVehicleRegistration,SuccessResponse
 from app.controllers.externalRfid.externalRfidController import getVehicleRegController,createVehicleRegController,editVehicleRegController,deleteVehicleRegController
 
-vehicleReg_router=APIRouter()
+externalrfid_Router=APIRouter()
 
-@vehicleReg_router.get('/external-rfid',response_model=VehicleRegistrationResponse)
+@externalrfid_Router.get('/external-rfid',response_model=VehicleRegistrationResponse)
 def getVehicleReg(rfidTag:str,db:Session=Depends(get_db)):
     return getVehicleRegController(rfidTag,db)
 
-@vehicleReg_router.post('/external-rfid',response_model=SuccessResponse)
+@externalrfid_Router.post('/external-rfid',response_model=SuccessResponse)
 def createVehicleReg(vehicleInfo:CreateVehicleRegistration,db:Session=Depends(get_db)):
     return createVehicleRegController(vehicleInfo,db)
 
-@vehicleReg_router.put('/external-rfid',response_model=SuccessResponse)
+@externalrfid_Router.put('/external-rfid',response_model=SuccessResponse)
 def editVehicleReg(vehicleInfo:EditVehicleRegistration,db:Session=Depends(get_db)):
     return editVehicleRegController(vehicleInfo,db)
 
-@vehicleReg_router.delete('/external-rfid',response_model=SuccessResponse)
+@externalrfid_Router.delete('/external-rfid',response_model=SuccessResponse)
 def deleteVehicleReg(vehicleInfo:DeleteVehicleRegistration,db:Session=Depends(get_db)):
     return deleteVehicleRegController(vehicleInfo,db)
 
