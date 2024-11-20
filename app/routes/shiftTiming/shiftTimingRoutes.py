@@ -7,10 +7,10 @@ from app.controllers.shiftTimings.shiftTimingsController import getShiftTimingsC
 
 shiftTimings_router=APIRouter()
 
-@shiftTimings_router.get("/shiftTimings",response_model=List[ShiftTimingResponse])
+@shiftTimings_router.get("/shift-timings",response_model=List[ShiftTimingResponse])
 def getShiftTimingsRoute(db: Session = Depends(get_db)):
     return getShiftTimingsController(db)
 
-@shiftTimings_router.put("/shiftTimings",response_model=List[ShiftTimingResponse])
+@shiftTimings_router.put("/shift-timings",response_model=List[ShiftTimingResponse])
 def updateShiftTimingsRoute(shift_timings:List[ShiftTimingUpdate],db: Session = Depends(get_db)):
     return updateShiftTimingsController(db,shift_timings)

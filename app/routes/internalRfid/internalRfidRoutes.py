@@ -6,7 +6,7 @@ from app.controllers.internalRfid.internalRfidControllers import getVehicleRegCo
 
 vehicleReg_router=APIRouter()
 
-@vehicleReg_router.get('/internal-rfid',response_model=VehicleRegistrationResponse)
+@vehicleReg_router.get('/internal-rfid/{rfidTag}',response_model=VehicleRegistrationResponse)
 def getVehicleReg(rfidTag:str,db:Session=Depends(get_db)):
     return getVehicleRegController(rfidTag,db)
 

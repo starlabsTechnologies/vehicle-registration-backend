@@ -6,7 +6,7 @@ from app.controllers.externalRfid.externalRfidController import getVehicleRegCon
 
 externalrfid_Router=APIRouter()
 
-@externalrfid_Router.get('/external-rfid',response_model=VehicleRegistrationResponse)
+@externalrfid_Router.get('/external-rfid/{rfidTag}',response_model=VehicleRegistrationResponse)
 def getVehicleReg(rfidTag:str,db:Session=Depends(get_db)):
     return getVehicleRegController(rfidTag,db)
 

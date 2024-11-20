@@ -3,7 +3,6 @@ from enum import Enum
 from typing import Optional
 from datetime import datetime
 
-
 class VehicleTypeEnum(str,Enum):  # Using Python's Enum class
     TCT = "TCT"
     PDV = "PDV"
@@ -12,6 +11,28 @@ class VehicleTypeEnum(str,Enum):  # Using Python's Enum class
     PCT = "PCT"
     TDBEV = "TDBEV"
     SCRAPE = "SCRAPE"
+
+class RegistrationDetailsFilter(BaseModel):
+    typeOfVehicle:VehicleTypeEnum
+
+class RegistrationDetailsResponse(BaseModel):
+    rfidTag:str
+    typeOfVehicle:VehicleTypeEnum
+    vehicleNumber:str
+    doNumber:Optional[str]=None
+    transporter:Optional[str]=None
+    driverOwner:Optional[str]=None
+    weighbridgeNo:Optional[str]=None
+    visitPurpose:Optional[str]=None
+    placeToVisit:Optional[str]=None
+    personToVisit:Optional[str]=None
+    validityTill:Optional[str]=None
+    section:Optional[str]=None
+    registerDate:str
+    registerTime:str
+    user:Optional[str]=None
+    shift:Optional[str]=None
+    loading:Optional[str]=None
 
 class SuccessResponse(BaseModel):
     message:str
