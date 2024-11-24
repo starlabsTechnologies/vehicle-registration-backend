@@ -40,5 +40,5 @@ jobs:
       env:
         SSH_PRIVATE_KEY: ${{ secrets.AWS_SSH_KEY }}
       run: |
-        scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -r $(pwd)/vehicle-registration-backend/* \
+        scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -r $(pwd)/* \
         ${{ secrets.AWS_SSH_USER }}@${{ secrets.AWS_SSH_HOST }}:/home/${{ secrets.AWS_SSH_USER }}/app/vehicle-registration-backend
