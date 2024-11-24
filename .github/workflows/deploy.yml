@@ -34,14 +34,14 @@ jobs:
         SSH_PRIVATE_KEY: ${{ secrets.AWS_SSH_KEY }}
       run: |
         ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
-        ${{ secrets.AWS_SSH_USER }}@${{ secrets.AWS_SSH_HOST }} "mkdir -p /home/${{ secrets.AWS_SSH_USER }}/app"
+        ${{ secrets.AWS_SSH_USER }}@${{ secrets.AWS_SSH_HOST }} "mkdir -p /home/${{ secrets.AWS_SSH_USER }}/app/vehicle-registration-backend"
 
     - name: Transfer Files to EC2 Instance
       env:
         SSH_PRIVATE_KEY: ${{ secrets.AWS_SSH_KEY }}
       run: |
         scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -r $(pwd)/ \
-        ${{ secrets.AWS_SSH_USER }}@${{ secrets.AWS_SSH_HOST }}:/home/${{ secrets.AWS_SSH_USER }}/app
+        ${{ secrets.AWS_SSH_USER }}@${{ secrets.AWS_SSH_HOST }}:/home/${{ secrets.AWS_SSH_USER }}/app/vehicle-registration-backend
 
     - name: Run Deployment Commands on EC2
       env:
@@ -50,7 +50,7 @@ jobs:
         ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
         ${{ secrets.AWS_SSH_USER }}@${{ secrets.AWS_SSH_HOST }} << 'EOF'
         # Navigate to the application directory
-        cd /home/${{ secrets.AWS_SSH_USER }}/app
+        cd /home/${{ secrets.AWS_SSH_USER }}/app/vehicle-registration-backend
 
         # Set up virtual environment and install dependencies
         python3 -m venv venv
