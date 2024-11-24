@@ -17,7 +17,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.10'  # Python version for packaging dependencies
+        python-version: '3.10'
 
     - name: Debug SSH Configuration
       env:
@@ -49,12 +49,18 @@ jobs:
       run: |
         ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
         ${{ secrets.AWS_SSH_USER }}@${{ secrets.AWS_SSH_HOST }} << 'EOF'
+        # Update system and install dependencies
+        sudo apt update
+        sudo apt install -y software-properties-common
+        sudo add-apt-repository -y ppa:deadsnakes/ppa
+        sudo apt update
+        sudo apt install -y python3.10 python3.10-venv python3.10-distutils curl
+
+        # Install pip if not available
+        curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10
+
         # Navigate to the application directory
         cd /home/${{ secrets.AWS_SSH_USER }}/app/vehicle-registration-backend
-
-        # Install the python3-venv package
-        sudo apt update
-        sudo apt install -y python3.10-venv
 
         # Set up virtual environment and install dependencies
         python3.10 -m venv venv
@@ -62,13 +68,13 @@ jobs:
         pip install --upgrade pip
         pip install -r requirements.txt
 
-        # Run the FastAPI application
+        # Start the FastAPI application
         nohup uvicorn main:app --host 0.0.0.0 --port 8000 &
 
-        # Check if the application is running
-        sleep 5  # wait for a few seconds to ensure the application has started
+        # Verify application is running
+        sleep 5
         ps aux | grep uvicorn
 
-        # View the last 10 lines of the log file
+        # Output the application logs
         tail -n 10 nohup.out
         EOF
