@@ -62,6 +62,9 @@ jobs:
         # Navigate to the application directory
         cd /home/${{ secrets.AWS_SSH_USER }}/app/vehicle-registration-backend
 
+        # Remove any existing venv directory to avoid conflicts
+        rm -rf venv
+
         # Set up virtual environment and install dependencies
         python3.10 -m venv venv
         source venv/bin/activate
