@@ -26,6 +26,18 @@ jobs:
         pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: Create App Directory on EC2
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.AWS_SSH_KEY }}
+      run: |
+        mkdir -p ~/.ssh
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+
+        # Ensure the app directory exists on EC2
+        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
+        ${{ secrets.AWS_SSH_USER }}@${{ secrets.AWS_SSH_HOST }} "mkdir -p /home/${{ secrets.AWS_SSH_USER }}/app"
+
     - name: Transfer Files to EC2 Instance
       env:
         SSH_PRIVATE_KEY: ${{ secrets.AWS_SSH_KEY }}
@@ -35,7 +47,7 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
 
         # Transfer files to the EC2 instance
-        scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -r . \
+        scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -r ./ \
         ${{ secrets.AWS_SSH_USER }}@${{ secrets.AWS_SSH_HOST }}:/home/${{ secrets.AWS_SSH_USER }}/app
 
     - name: Run Deployment Commands on EC2
