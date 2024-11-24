@@ -19,25 +19,28 @@ jobs:
       with:
         python-version: '3.10'  # Python version for packaging dependencies
 
-    - name: Install Dependencies Locally
-      run: |
-        python -m venv venv
-        source venv/bin/activate
-        # Install pip if it's not installed
-        python -m ensurepip --upgrade
-        pip install --upgrade pip
-        pip install -r requirements.txt
-
-    - name: Transfer Files to EC2 Instance
+    - name: Debug SSH Configuration
       env:
         SSH_PRIVATE_KEY: ${{ secrets.AWS_SSH_KEY }}
       run: |
         mkdir -p ~/.ssh
         echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
+        ls -la ~/.ssh
+        echo "SSH key setup complete."
 
-        # Transfer the contents of the 'vehicle-registration-backend' directory
-        scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -r ./app/vehicle-registration-backend \
+    - name: Ensure App Directory Exists on EC2
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.AWS_SSH_KEY }}
+      run: |
+        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
+        ${{ secrets.AWS_SSH_USER }}@${{ secrets.AWS_SSH_HOST }} "mkdir -p /home/${{ secrets.AWS_SSH_USER }}/app"
+
+    - name: Transfer Files to EC2 Instance
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.AWS_SSH_KEY }}
+      run: |
+        scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -r $(pwd)/ \
         ${{ secrets.AWS_SSH_USER }}@${{ secrets.AWS_SSH_HOST }}:/home/${{ secrets.AWS_SSH_USER }}/app
 
     - name: Run Deployment Commands on EC2
@@ -46,13 +49,15 @@ jobs:
       run: |
         ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
         ${{ secrets.AWS_SSH_USER }}@${{ secrets.AWS_SSH_HOST }} << 'EOF'
-        cd /home/${{ secrets.AWS_SSH_USER }}/app/vehicle-registration-backend
+        # Navigate to the application directory
+        cd /home/${{ secrets.AWS_SSH_USER }}/app
 
+        # Set up virtual environment and install dependencies
         python3 -m venv venv
         source venv/bin/activate
         pip install --upgrade pip
         pip install -r requirements.txt
 
-        # Run FastAPI app with uvicorn
+        # Run the FastAPI application
         nohup uvicorn main:app --host 0.0.0.0 --port 8000 &
         EOF
