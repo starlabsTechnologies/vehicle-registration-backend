@@ -19,7 +19,7 @@ jobs:
       with:
         python-version: '3.10'  # Python version for packaging dependencies
 
-    - name: Install Dependencies Locally (Optional)
+    - name: Install Dependencies Locally
       run: |
         python -m venv venv
         source venv/bin/activate
@@ -36,8 +36,8 @@ jobs:
         echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
 
-        # Transfer files to the EC2 instance
-        scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -r ./ \
+        # Transfer the contents of the 'vehicle-registration-backend' directory
+        scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -r ./app/vehicle-registration-backend \
         ${{ secrets.AWS_SSH_USER }}@${{ secrets.AWS_SSH_HOST }}:/home/${{ secrets.AWS_SSH_USER }}/app
 
     - name: Run Deployment Commands on EC2
@@ -46,17 +46,13 @@ jobs:
       run: |
         ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
         ${{ secrets.AWS_SSH_USER }}@${{ secrets.AWS_SSH_HOST }} << 'EOF'
-        # Navigate to the application directory
         cd /home/${{ secrets.AWS_SSH_USER }}/app/vehicle-registration-backend
 
-        # Set up virtual environment and install dependencies
         python3 -m venv venv
         source venv/bin/activate
-        # Install pip if it's not installed
-        python -m ensurepip --upgrade
         pip install --upgrade pip
         pip install -r requirements.txt
 
-        # Run the FastAPI application
+        # Run FastAPI app with uvicorn
         nohup uvicorn main:app --host 0.0.0.0 --port 8000 &
         EOF
