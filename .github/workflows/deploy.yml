@@ -19,28 +19,25 @@ jobs:
       with:
         python-version: '3.10'  # Python version for packaging dependencies
 
-    - name: Debug SSH Configuration
+    - name: Install Dependencies Locally (Optional)
+      run: |
+        python -m venv venv
+        source venv/bin/activate
+        # Install pip if it's not installed
+        python -m ensurepip --upgrade
+        pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Transfer Files to EC2 Instance
       env:
         SSH_PRIVATE_KEY: ${{ secrets.AWS_SSH_KEY }}
       run: |
         mkdir -p ~/.ssh
         echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        ls -la ~/.ssh
-        echo "SSH key setup complete."
 
-    - name: Ensure App Directory Exists on EC2
-      env:
-        SSH_PRIVATE_KEY: ${{ secrets.AWS_SSH_KEY }}
-      run: |
-        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
-        ${{ secrets.AWS_SSH_USER }}@${{ secrets.AWS_SSH_HOST }} "mkdir -p /home/${{ secrets.AWS_SSH_USER }}/app"
-
-    - name: Transfer Files to EC2 Instance
-      env:
-        SSH_PRIVATE_KEY: ${{ secrets.AWS_SSH_KEY }}
-      run: |
-        scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -r $(pwd)/ \
+        # Transfer files to the EC2 instance
+        scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -r ./ \
         ${{ secrets.AWS_SSH_USER }}@${{ secrets.AWS_SSH_HOST }}:/home/${{ secrets.AWS_SSH_USER }}/app
 
     - name: Run Deployment Commands on EC2
@@ -50,11 +47,13 @@ jobs:
         ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
         ${{ secrets.AWS_SSH_USER }}@${{ secrets.AWS_SSH_HOST }} << 'EOF'
         # Navigate to the application directory
-        cd /home/${{ secrets.AWS_SSH_USER }}/app
+        cd /home/${{ secrets.AWS_SSH_USER }}/app/vehicle-registration-backend
 
         # Set up virtual environment and install dependencies
         python3 -m venv venv
         source venv/bin/activate
+        # Install pip if it's not installed
+        python -m ensurepip --upgrade
         pip install --upgrade pip
         pip install -r requirements.txt
 
