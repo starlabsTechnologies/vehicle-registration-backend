@@ -60,4 +60,11 @@ jobs:
 
         # Run the FastAPI application
         nohup uvicorn main:app --host 0.0.0.0 --port 8000 &
+
+        # Check if the application is running
+        sleep 5  # wait for a few seconds to ensure the application has started
+        ps aux | grep uvicorn
+
+        # View the last 10 lines of the log file
+        tail -n 10 nohup.out
         EOF
