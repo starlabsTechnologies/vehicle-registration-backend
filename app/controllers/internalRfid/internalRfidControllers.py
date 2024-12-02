@@ -1,5 +1,6 @@
-from app.services.internalRfid.internalRfidServices import getVehicleReg,createVehicleReg,editVehicleReg,deleteVehicleReg
+from app.services.internalRfid.internalRfidServices import getVehicleReg,createVehicleReg,editVehicleReg,deleteVehicleReg,getAllotedTag,createAllotedTag
 from app.models.vehicleRegistrationBase import VehicleRegistrationResponse,CreateVehicleRegistration,EditVehicleRegistration,DeleteVehicleRegistration,SuccessResponse
+from app.models.allotedTagsBase import ReceiptResponse
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
 from app.utils.logger import logger
@@ -25,7 +26,7 @@ def getVehicleRegController(rfidTag:str,db:Session) -> VehicleRegistrationRespon
             status_code=500
         )
 
-def createVehicleRegController(vehicleInfo:CreateVehicleRegistration,db:Session) -> SuccessResponse:
+def createVehicleRegController(vehicleInfo:CreateVehicleRegistration,db:Session) -> ReceiptResponse:
     try:
         if not vehicleInfo.rfidTag:
             logger.warning("Rfid tag required")
@@ -40,6 +41,13 @@ def createVehicleRegController(vehicleInfo:CreateVehicleRegistration,db:Session)
                 content={"message":"Vehicle Number and ValidityTill required"},
                 status_code=400
             )
+        
+        if not vehicleInfo.total:
+            logger.warning("Total value required")
+            return JSONResponse(
+                content={"message":"Total value required"},
+                status_code=400
+            )
 
         vehicleReg=getVehicleReg(vehicleInfo.rfidTag,db)
 
@@ -49,6 +57,32 @@ def createVehicleRegController(vehicleInfo:CreateVehicleRegistration,db:Session)
                 content={"message": "Vehicle with Rfid Tag already exists"},
                 status_code=400
             )
+        
+        tag=getAllotedTag(vehicleInfo.rfidTag,db)
+
+        if tag is None:
+            newTag=createAllotedTag(vehicleInfo,db)
+
+            if newTag:
+                newReg=createVehicleReg(vehicleInfo,db)
+
+                if not newReg:
+                    logger.warning("Error occurred registering vehicle")
+                    return JSONResponse(
+                        content={"message":"Error occurred while registering vehicle"},
+                        status_code=400
+                    )
+                
+                logger.info(f"Vehicle Registered successfully")
+                newTag.message = "Vehicle Registered successfully"
+                return newTag
+        
+            else:
+                logger.warning("Error occurred while Alloting Tag")
+                return JSONResponse(
+                    content={"message":"Error occurred while Alloting Tag"},
+                    status_code=400
+                )
         
         newReg=createVehicleReg(vehicleInfo,db)
 
@@ -60,9 +94,8 @@ def createVehicleRegController(vehicleInfo:CreateVehicleRegistration,db:Session)
             )
         
         logger.info(f"Vehicle Registered successfully")
-        return SuccessResponse(
-            message="Vehicle Registered successfully"
-        )
+        tag.message = "Vehicle Registered successfully"
+        return tag
     
     except Exception as error:
         logger.error(f"Error occurred while registering vehicle: {error}")
@@ -70,7 +103,6 @@ def createVehicleRegController(vehicleInfo:CreateVehicleRegistration,db:Session)
             content={"message": "Error occurred while registering vehicle"},
             status_code=500
         )
-
 
 def editVehicleRegController(vehicleInfo:EditVehicleRegistration,db:Session) -> SuccessResponse:
     try:

@@ -49,6 +49,7 @@ class CreateVehicleRegistration(BaseModel):
     placeToVisit:Optional[str]=None
     personToVisit:Optional[str]=None
     validityTill:str
+    total:str
     section:Optional[str]=None
     registerDate: str = Field(default_factory=lambda: datetime.now().strftime('%Y-%m-%d'))
     registerTime: str = Field(default_factory=lambda: datetime.now().strftime('%H:%M:%S'))
