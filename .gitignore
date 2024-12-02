@@ -27,10 +27,13 @@ MANIFEST
 
 # Virtual environment directories
 venv/
+.venv/
 ENV/
 env/
 venv.bak/
 env.bak/
+
+temp/
 
 # PyInstaller
 #  Usually these files are written by a Python script from a template

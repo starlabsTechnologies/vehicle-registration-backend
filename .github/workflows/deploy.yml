@@ -1,0 +1,74 @@
+name: Deploy to AWS EC2
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Checkout the repository
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    # Step 2: Set up Python environment
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    # Step 3: Configure SSH for EC2 connection
+    - name: Configure SSH
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.AWS_SSH_KEY }}
+      run: |
+        mkdir -p ~/.ssh
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.AWS_SSH_HOST }} >> ~/.ssh/known_hosts
+
+    # Step 4: Ensure the app directory exists on the EC2 instance
+    - name: Ensure App Directory on EC2
+      run: |
+        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.AWS_SSH_USER }}@${{ secrets.AWS_SSH_HOST }} \
+        "mkdir -p /home/${{ secrets.AWS_SSH_USER }}/app/vehicle-registration-backend"
+
+    # Step 5: Transfer project files to the EC2 instance
+    - name: Transfer Files to EC2 Instance
+      run: |
+        scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -r $(pwd)/* \
+        ${{ secrets.AWS_SSH_USER }}@${{ secrets.AWS_SSH_HOST }}:/home/${{ secrets.AWS_SSH_USER }}/app/vehicle-registration-backend
+
+    # Step 6: Create the `.env` file on the EC2 instance
+    - name: Create .env on EC2 Instance
+      env:
+        DB_USER: ${{ secrets.DB_USER }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        DB_HOST: ${{ secrets.DB_HOST }}
+        DB_PORT: ${{ secrets.DB_PORT }}
+        DB_NAME: ${{ secrets.DB_NAME }}
+        PORT: ${{ secrets.PORT }}
+      run: |
+        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.AWS_SSH_USER }}@${{ secrets.AWS_SSH_HOST }} << EOF
+        echo "DB_USER=${DB_USER}" > /home/${{ secrets.AWS_SSH_USER }}/app/vehicle-registration-backend/.env
+        echo "DB_PASSWORD=${DB_PASSWORD}" >> /home/${{ secrets.AWS_SSH_USER }}/app/vehicle-registration-backend/.env
+        echo "DB_HOST=${DB_HOST}" >> /home/${{ secrets.AWS_SSH_USER }}/app/vehicle-registration-backend/.env
+        echo "DB_PORT=${DB_PORT}" >> /home/${{ secrets.AWS_SSH_USER }}/app/vehicle-registration-backend/.env
+        echo "DB_NAME=${DB_NAME}" >> /home/${{ secrets.AWS_SSH_USER }}/app/vehicle-registration-backend/.env
+        echo "PORT=${PORT}" >> /home/${{ secrets.AWS_SSH_USER }}/app/vehicle-registration-backend/.env
+        EOF
+
+    # Step 7: Install Python dependencies and restart the server
+    - name: Deploy Application on EC2
+      run: |
+        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.AWS_SSH_USER }}@${{ secrets.AWS_SSH_HOST }} << EOF
+        cd /home/${{ secrets.AWS_SSH_USER }}/app/vehicle-registration-backend
+        source venv/bin/activate
+        pip install -r requirements.txt
+        pkill -f "uvicorn" || true
+        nohup python -m uvicorn main:app --host 0.0.0.0 --port=${PORT} &
+        EOF
