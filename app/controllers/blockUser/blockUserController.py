@@ -1,8 +1,30 @@
-from app.services.blockUser.blockUserServices import changeBlacklistStatus
-from app.models.allotedTagsBase import BlockUser,SuccessResponse
+from app.services.blockUser.blockUserServices import changeBlacklistStatus,getRfidFromServer
+from app.models.allotedTagsBase import BlockUser,SuccessResponse,ServiceResponse
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
 from app.utils.logger import logger
+import httpx
+
+async def getRfidFromServiceController() -> ServiceResponse:
+    try:
+        response=await getRfidFromServer()
+
+        if not response.success:
+            logger.warning("Tag not found")
+            return JSONResponse(
+                content={"message": "Tag not found"},
+                status_code=400
+            )
+        
+        logger.info("Rfid Tag fetched successfully.")
+        return response
+
+    except Exception as error:
+        logger.error(f"Error occured while fetching Rfid: {error}")
+        return JSONResponse(
+            content={"message": f"Error occured while fetching Rfid: {error}"},
+            status_code=500
+        )
 
 def blockUserController(userInfo:BlockUser,db:Session) -> SuccessResponse:
     try:
