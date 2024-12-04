@@ -22,7 +22,6 @@ class OptionsEnum(str,Enum):
     DoWise = "Do Wise"
     VehicleType = "Vehicle Type"
     ValidityWise = "Validity Wise"
-    RegistrationDetails = "Registration Details"
 
 class DataFilter(BaseModel):
     option:OptionsEnum
@@ -30,7 +29,6 @@ class DataFilter(BaseModel):
     dateOut:Optional[str]=None
     timeIn:Optional[str]=None
     timeOut:Optional[str]=None
-    typeOfVehicle:Optional[VehicleTypeEnum]
 
 class SummaryFilter(BaseModel):
     dateIn:str
@@ -43,33 +41,28 @@ class WeighbridgeWiseFilter(BaseModel):
     dateOut:str
     timeIn:str
     timeOut:str
-    typeOfVehicle:VehicleTypeEnum
 
 class ShiftWiseFilter(BaseModel):
     dateIn:str
     dateOut:str
-    typeOfVehicle:VehicleTypeEnum
 
 class DoWiseFilter(BaseModel):
     dateIn:str
     dateOut:str
     timeIn:str
     timeOut:str
-    typeOfVehicle:VehicleTypeEnum
 
 class VehicleTypeFilter(BaseModel):
     dateIn:str
     dateOut:str
     timeIn:str
     timeOut:str
-    typeOfVehicle:VehicleTypeEnum
 
 class ValidityWiseFilter(BaseModel):
     dateIn:str
     dateOut:str
     timeIn:str
     timeOut:str
-    typeOfVehicle:VehicleTypeEnum
 
 class VehicleInOutResponse(BaseModel):
     rfidTag:str

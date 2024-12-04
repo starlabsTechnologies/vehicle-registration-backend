@@ -12,9 +12,6 @@ class VehicleTypeEnum(str,Enum):  # Using Python's Enum class
     TDBEV = "TDBEV"
     SCRAPE = "SCRAPE"
 
-class RegistrationDetailsFilter(BaseModel):
-    typeOfVehicle:VehicleTypeEnum
-
 class RegistrationDetailsResponse(BaseModel):
     rfidTag:str
     typeOfVehicle:VehicleTypeEnum
