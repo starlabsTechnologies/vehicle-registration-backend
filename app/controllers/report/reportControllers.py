@@ -1,8 +1,8 @@
 from app.models.vehicleInOutBase import VehicleInOutResponse,SummaryFilter,WeighbridgeWiseFilter,ShiftWiseFilter,DoWiseFilter,VehicleTypeFilter,ValidityWiseFilter,DataFilter,OptionsEnum
-from app.services.report.reportServices import getSummary,getWeighbridgeWise,getShiftWise,getDoWise,getVehicleType,getValidityWise,getRegistrationDetails
+from app.services.report.reportServices import getSummary,getWeighbridgeWise,getShiftWise,getDoWise,getVehicleType,getValidityWise,getRegistrationDetails,getVehicleInOutData
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
-from app.models.vehicleRegistrationBase import RegistrationDetailsFilter,RegistrationDetailsResponse
+from app.models.vehicleRegistrationBase import RegistrationDetailsResponse
 from typing import List, Union
 from app.utils.logger import logger
 
@@ -24,7 +24,6 @@ def setOptionController(filterInfo:DataFilter,db:Session) -> List[Union[VehicleI
                 dateOut=filterInfo.dateOut,
                 timeIn=filterInfo.timeIn,
                 timeOut=filterInfo.timeOut,
-                typeOfVehicle=filterInfo.typeOfVehicle
             )
 
             return getWeighbridgeWiseController(filter,db)
@@ -33,7 +32,6 @@ def setOptionController(filterInfo:DataFilter,db:Session) -> List[Union[VehicleI
             filter=ShiftWiseFilter(
                 dateIn=filterInfo.dateIn,
                 dateOut=filterInfo.dateOut,
-                typeOfVehicle=filterInfo.typeOfVehicle
             )
 
             return getShiftWiseController(filter,db)
@@ -44,7 +42,6 @@ def setOptionController(filterInfo:DataFilter,db:Session) -> List[Union[VehicleI
                 dateOut=filterInfo.dateOut,
                 timeIn=filterInfo.timeIn,
                 timeOut=filterInfo.timeOut,
-                typeOfVehicle=filterInfo.typeOfVehicle
             )
 
             return getDoWiseController(filter,db)
@@ -55,7 +52,6 @@ def setOptionController(filterInfo:DataFilter,db:Session) -> List[Union[VehicleI
                 dateOut=filterInfo.dateOut,
                 timeIn=filterInfo.timeIn,
                 timeOut=filterInfo.timeOut,
-                typeOfVehicle=filterInfo.typeOfVehicle
             )
 
             return getVehicleTypeController(filter,db)
@@ -66,17 +62,9 @@ def setOptionController(filterInfo:DataFilter,db:Session) -> List[Union[VehicleI
                 dateOut=filterInfo.dateOut,
                 timeIn=filterInfo.timeIn,
                 timeOut=filterInfo.timeOut,
-                typeOfVehicle=filterInfo.typeOfVehicle
             )
 
             return getValidityWiseController(filter,db)
-
-        elif(filterInfo.option == OptionsEnum.RegistrationDetails):
-            filter=RegistrationDetailsFilter(
-                typeOfVehicle=filterInfo.typeOfVehicle
-            )
-
-            return getRegistrationDetailsController(filter,db)
         
         else:
             logger.warning("Wrong option Entered")
@@ -218,9 +206,30 @@ def getValidityWiseController(filterInfo:ValidityWiseFilter,db:Session) -> List[
             status_code=500
         )
     
-def getRegistrationDetailsController(filterInfo:RegistrationDetailsFilter,db:Session) -> List[RegistrationDetailsResponse]:
+def getVehicleInOutDataController(db:Session) -> List[VehicleInOutResponse]:
     try:
-        result=getRegistrationDetails(filterInfo,db)
+        result=getVehicleInOutData(db)
+
+        if (len(result) == 0):
+            logger.warning("No data found")
+            return JSONResponse(
+                content={"message":"No data found"},
+                status_code=404
+            )
+        
+        logger.info("Vehicle In Out data fetched successfully")
+        return result
+    
+    except Exception as error:
+        logger.error(f"Error occurred while fetching Vehicle In Out data: {error}")
+        return JSONResponse(
+            content={"message": "Error occurred while fetching Vehicle In Out data"},
+            status_code=500
+        )
+    
+def getRegistrationDetailsController(db:Session) -> List[RegistrationDetailsResponse]:
+    try:
+        result=getRegistrationDetails(db)
 
         if (len(result) == 0):
             logger.warning("No data found")
