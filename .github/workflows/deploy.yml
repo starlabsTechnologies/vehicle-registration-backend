@@ -52,6 +52,7 @@ jobs:
         DB_PORT: ${{ secrets.DB_PORT }}
         DB_NAME: ${{ secrets.DB_NAME }}
         PORT: ${{ secrets.PORT }}
+        SERVICE_URL: ${{ secrets.SERVICE_URL }}
       run: |
         ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.AWS_SSH_USER }}@${{ secrets.AWS_SSH_HOST }} << EOF
         echo "DB_USER=${DB_USER}" > /home/${{ secrets.AWS_SSH_USER }}/app/vehicle-registration-backend/.env
@@ -60,6 +61,7 @@ jobs:
         echo "DB_PORT=${DB_PORT}" >> /home/${{ secrets.AWS_SSH_USER }}/app/vehicle-registration-backend/.env
         echo "DB_NAME=${DB_NAME}" >> /home/${{ secrets.AWS_SSH_USER }}/app/vehicle-registration-backend/.env
         echo "PORT=${PORT}" >> /home/${{ secrets.AWS_SSH_USER }}/app/vehicle-registration-backend/.env
+        echo "SERVICE_URL=${SERVICE_URL}" >> /home/${{ secrets.AWS_SSH_USER }}/app/vehicle-registration-backend/.env
         EOF
 
     # Step 7: Install Python dependencies and restart the server
