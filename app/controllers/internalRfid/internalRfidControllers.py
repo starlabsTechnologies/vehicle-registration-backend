@@ -3,22 +3,66 @@ from app.models.vehicleRegistrationBase import FetchRfidResponse,VehicleRegistra
 from app.models.allotedTagsBase import ReceiptResponse
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
+from fastapi import WebSocket, WebSocketDisconnect
 from app.utils.logger import logger
-from app.services.internalRfid.internalRfidServices import getRfidFromServer
+from app.utils.webSocketManager.socketManager import WebSocketManager
+import asyncio
+import json
+
+websocket_manager = WebSocketManager()
+
+trigger_event = asyncio.Event()
+rfid_data = None
+rfid_event = asyncio.Event()
+
+async def getRfidFromServerController(websocket: WebSocket) -> None:
+    global rfid_data
+    await websocket_manager.connect(websocket)
+    global trigger
+    try:
+        while True:
+            await trigger_event.wait()
+
+            await websocket.send_text("trigger")
+            data = await websocket.receive_text()
+            print(f"Received message: {data}")
+            data_dict = json.loads(data)
+
+            rfid_data = data_dict["rfid"]
+            if rfid_data:
+                print(f"Received RFID: {rfid_data}")
+                rfid_event.set() 
+
+            trigger = False
+            await websocket.send_text("stop")
+            print("Sent 'stop' to websocket")
+            trigger_event.clear()
+            await asyncio.sleep(0.5)
+
+    except WebSocketDisconnect:
+        print("WebSocket disconnected")
 
 async def fetchVehicleRegControllerwithRfid(db:Session) -> FetchRfidResponse:
+    trigger_event.set()
+    global rfid_data
+    rfid_event.clear()
+
+    await rfid_event.wait()
+
+    if rfid_data is None:
+        return {"message": "No RFID data received", "rfid": None}
+
     try:
-        rfid_data=await getRfidFromServer()
-        vehicleReg=getVehicleReg(rfid_data['rfid'],db)
+        vehicleReg=getVehicleReg(rfid_data,db)
 
         if vehicleReg is None:
-            logger.info(f"Fetched rfid tag: {rfid_data['rfid']}")
+            logger.info(f"Fetched rfid tag: {rfid_data}")
             return FetchRfidResponse(
-                rfidTag=rfid_data['rfid']
+                rfidTag=rfid_data
             )
         
         else:        
-            logger.info(f"Fetched vehicle reg with rfid tag: {rfid_data['rfid']}")
+            logger.info(f"Fetched vehicle reg with rfid tag: {rfid_data}")
             return vehicleReg
     
     except Exception as error:
@@ -27,6 +71,27 @@ async def fetchVehicleRegControllerwithRfid(db:Session) -> FetchRfidResponse:
             content={"message": "Error while fetching data"},
             status_code=500
         )
+
+# async def fetchVehicleRegControllerwithRfid(db:Session) -> FetchRfidResponse:
+#     try:
+#         vehicleReg=getVehicleReg(rfid_data['rfid'],db)
+
+#         if vehicleReg is None:
+#             logger.info(f"Fetched rfid tag: {rfid_data['rfid']}")
+#             return FetchRfidResponse(
+#                 rfidTag=rfid_data['rfid']
+#             )
+        
+#         else:        
+#             logger.info(f"Fetched vehicle reg with rfid tag: {rfid_data['rfid']}")
+#             return vehicleReg
+    
+#     except Exception as error:
+#         logger.error(f"Error while fetching data: {error}")
+#         return JSONResponse(
+#             content={"message": "Error while fetching data"},
+#             status_code=500
+#         )
 
 def getVehicleRegController(rfidTag:str,db:Session) -> VehicleRegistrationResponse:
     try:
