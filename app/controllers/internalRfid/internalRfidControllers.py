@@ -1,9 +1,32 @@
 from app.services.internalRfid.internalRfidServices import getVehicleReg,createVehicleReg,editVehicleReg,deleteVehicleReg,getAllotedTag,createAllotedTag
-from app.models.vehicleRegistrationBase import VehicleRegistrationResponse,CreateVehicleRegistration,EditVehicleRegistration,DeleteVehicleRegistration,SuccessResponse
+from app.models.vehicleRegistrationBase import FetchRfidResponse,VehicleRegistrationResponse,CreateVehicleRegistration,EditVehicleRegistration,DeleteVehicleRegistration,SuccessResponse
 from app.models.allotedTagsBase import ReceiptResponse
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
 from app.utils.logger import logger
+from app.services.internalRfid.internalRfidServices import getRfidFromServer
+
+async def fetchVehicleRegControllerwithRfid(db:Session) -> FetchRfidResponse:
+    try:
+        rfid_data=await getRfidFromServer()
+        vehicleReg=getVehicleReg(rfid_data['rfid'],db)
+
+        if vehicleReg is None:
+            logger.info(f"Fetched rfid tag: {rfid_data['rfid']}")
+            return FetchRfidResponse(
+                rfidTag=rfid_data['rfid']
+            )
+        
+        else:        
+            logger.info(f"Fetched vehicle reg with rfid tag: {rfid_data['rfid']}")
+            return vehicleReg
+    
+    except Exception as error:
+        logger.error(f"Error while fetching data: {error}")
+        return JSONResponse(
+            content={"message": "Error while fetching data"},
+            status_code=500
+        )
 
 def getVehicleRegController(rfidTag:str,db:Session) -> VehicleRegistrationResponse:
     try:

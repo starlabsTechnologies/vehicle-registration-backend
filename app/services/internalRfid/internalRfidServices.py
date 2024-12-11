@@ -2,11 +2,23 @@ from sqlalchemy.orm import Session
 from app.schema.vehicleRegistration import VehicleRegistration
 from app.schema.allotedTags import AllotedTags
 from app.models.allotedTagsBase import CreateAllotedTag,ReceiptResponse
-from app.models.vehicleRegistrationBase import CreateVehicleRegistration,EditVehicleRegistration,DeleteVehicleRegistration,VehicleRegistrationResponse
+from app.models.vehicleRegistrationBase import FetchRfidResponse,CreateVehicleRegistration,EditVehicleRegistration,DeleteVehicleRegistration,VehicleRegistrationResponse
 from typing import Optional
 from datetime import datetime
 import random
 import string
+import requests
+import os
+
+async def getRfidFromServer() -> FetchRfidResponse:
+    service_url=os.getenv("SERVICE_URL")
+
+    response = requests.get(service_url)
+
+    response.raise_for_status()
+
+    rfid_data = response.json()
+    return rfid_data
 
 def generate_sales_order_no():
     date_part=datetime.now().strftime("%Y-%m-%d")

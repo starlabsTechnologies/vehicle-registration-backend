@@ -16,10 +16,6 @@ class BlockUser(BaseModel):
     vehicleNo:str
     action:str
 
-class ServiceResponse(BaseModel):
-    success:Optional[bool]=False
-    rfid:Optional[str]=None
-
 class SuccessResponse(BaseModel):
     message:str
     isBlocked:Optional[bool]=False
