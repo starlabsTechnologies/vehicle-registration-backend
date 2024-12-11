@@ -12,6 +12,22 @@ class VehicleTypeEnum(str,Enum):  # Using Python's Enum class
     TDBEV = "TDBEV"
     SCRAPE = "SCRAPE"
 
+class FetchRfidResponse(BaseModel):
+    rfidTag:str
+    typeOfVehicle:Optional[VehicleTypeEnum]=VehicleTypeEnum.TCT
+    vehicleNumber:Optional[str]=None
+    doNumber:Optional[str]=None
+    transporter:Optional[str]=None
+    driverOwner:Optional[str]=None
+    weighbridgeNo:Optional[str]=None
+    visitPurpose:Optional[str]=None
+    placeToVisit:Optional[str]=None
+    personToVisit:Optional[str]=None
+    validityTill:Optional[str]=None
+    section:Optional[str]=None
+    registerDate:Optional[str]=None
+    registerTime:Optional[str]=None
+
 class RegistrationDetailsResponse(BaseModel):
     rfidTag:str
     typeOfVehicle:VehicleTypeEnum

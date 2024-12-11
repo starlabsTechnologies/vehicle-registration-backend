@@ -3,9 +3,13 @@ from app.config.db_config import get_db
 from sqlalchemy.orm import Session
 from app.models.allotedTagsBase import ReceiptResponse
 from app.models.vehicleRegistrationBase import VehicleRegistrationResponse,CreateVehicleRegistration,EditVehicleRegistration,DeleteVehicleRegistration,SuccessResponse
-from app.controllers.internalRfid.internalRfidControllers import getVehicleRegController,createVehicleRegController,editVehicleRegController,deleteVehicleRegController
+from app.controllers.internalRfid.internalRfidControllers import getVehicleRegController,createVehicleRegController,editVehicleRegController,deleteVehicleRegController,fetchVehicleRegControllerwithRfid
 
 vehicleReg_router=APIRouter()
+
+@vehicleReg_router.get('/internal-rfid-fetch',response_model=VehicleRegistrationResponse)
+async def fetch(db:Session=Depends(get_db)):
+    return await fetchVehicleRegControllerwithRfid(db)
 
 @vehicleReg_router.get('/internal-rfid/{rfidTag}',response_model=VehicleRegistrationResponse)
 def getVehicleReg(rfidTag:str,db:Session=Depends(get_db)):
