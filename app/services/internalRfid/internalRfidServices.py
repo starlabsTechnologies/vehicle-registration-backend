@@ -5,20 +5,47 @@ from app.models.allotedTagsBase import CreateAllotedTag,ReceiptResponse
 from app.models.vehicleRegistrationBase import FetchRfidResponse,CreateVehicleRegistration,EditVehicleRegistration,DeleteVehicleRegistration,VehicleRegistrationResponse
 from typing import Optional
 from datetime import datetime
+from fastapi import WebSocket, WebSocketDisconnect
 import random
+from app.utils.webSocketManager.socketManager import WebSocketManager
 import string
-import requests
-import os
+import asyncio
+import json
 
-async def getRfidFromServer() -> FetchRfidResponse:
-    service_url=os.getenv("SERVICE_URL")
+# async def getRfidFromServer(websocket:WebSocket) -> FetchRfidResponse:
+#     global count
+#     await websocket_manager.connect(websocket)
+#     try:
+#         while True:            
+#             # If count is odd, send "trigger" immediately
+#             if count % 2 != 0:
+#                 data = await websocket.receive_text()
+#                 print(f"Received message: {data}, count: {count}")
+#                 data_dict = json.loads(data)
+#                 response = "trigger"  # Send "trigger" when count is odd
+#                 # Send the response to the client
+#                 await websocket_manager.send_message(response, websocket)
+#                 print(f"Sent response: {response}")
+            
+#             # If count is even, send "stop" and just increment count without waiting for next input
+#             else:
+#                 response = "stop"  # Send "stop" when count is even
+#                 # Send the response to the client
+#                 await websocket_manager.send_message(response, websocket)
+#                 print(f"Sent response: {response}")
+            
+#             # Increment count after sending the response
+#             count += 1
+#             print(f"Count after increment: {count}")
 
-    response = requests.get(service_url)
-
-    response.raise_for_status()
-
-    rfid_data = response.json()
-    return rfid_data
+#             # **Do not wait for the next text input** when the response is "stop"
+#             if response == "stop":
+#                 # Simply continue with the next loop iteration
+#                 print("Sent stop, waiting for next cycle where count will be odd.")
+#                 continue
+#     except WebSocketDisconnect:
+#         await websocket_manager.disconnect(websocket)
+#         print("Client disconnected")
 
 def generate_sales_order_no():
     date_part=datetime.now().strftime("%Y-%m-%d")
