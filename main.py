@@ -23,7 +23,7 @@ def start_server():
 
         PORT = int(os.getenv("PORT", 8000))
         print("Server running on Port",PORT)
-        uvicorn.run("main:app", host="192.168.190.120", port=PORT,reload=True )
+        uvicorn.run("main:app", host="0.0.0.0", port=PORT,reload=True )
 
     except Exception as e:
         print(f"Error establishing Server: {e}")
