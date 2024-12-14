@@ -1,4 +1,4 @@
-from fastapi import APIRouter,Depends,WebSocket
+from fastapi import APIRouter,Depends,WebSocket,Request
 from app.config.db_config import get_db
 from sqlalchemy.orm import Session
 from app.models.allotedTagsBase import ReceiptResponse
@@ -6,44 +6,13 @@ from app.models.vehicleRegistrationBase import FetchRfidResponse,VehicleRegistra
 from app.controllers.internalRfid.internalRfidControllers import getVehicleRegController,createVehicleRegController,editVehicleRegController,deleteVehicleRegController
 from app.controllers.internalRfid.internalRfidControllers import getRfidFromServerController,fetchVehicleRegControllerwithRfid
 from app.utils.webSocketManager.socketManager import WebSocketManager
-from fastapi import WebSocket, WebSocketDisconnect
-import asyncio
-import json
+from fastapi import WebSocket
 
 vehicleReg_router=APIRouter()
 
-# websocket_manager = WebSocketManager()
-
-# trigger_event = asyncio.Event()
-# rfid_data=None
-
-# async def getRfidFromServer(websocket: WebSocket,db:Session) -> None:
-#     global rfid_data
-#     await websocket_manager.connect(websocket)
-#     global trigger
-#     try:
-#         while True:
-#             await trigger_event.wait()
-
-#             await websocket.send_text("trigger")
-#             data = await websocket.receive_text()
-#             print(f"Received message: {data}")
-#             data_dict = json.loads(data)
-
-#             rfid_data = data_dict["rfid"]  # Extract RFID tag from the message
-
-#             trigger = False
-#             await websocket.send_text("stop")
-#             print("Sent 'stop' to websocket")
-#             trigger_event.clear()
-#             await asyncio.sleep(0.5)
-        
-#     except WebSocketDisconnect:
-#         print("WebSocket disconnected")
-
 @vehicleReg_router.get("/internal-rfid-data",response_model=FetchRfidResponse)
-async def increment_and_send_websocket(db:Session=Depends(get_db)):
-    return await fetchVehicleRegControllerwithRfid(db)
+async def increment_and_send_websocket(request:Request,db:Session=Depends(get_db)):
+    return await fetchVehicleRegControllerwithRfid(request,db)
 
 @vehicleReg_router.websocket('/internal-rfid-fetch')
 async def fetch(websocket:WebSocket):

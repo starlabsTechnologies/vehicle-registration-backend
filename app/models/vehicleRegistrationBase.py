@@ -27,6 +27,7 @@ class FetchRfidResponse(BaseModel):
     section:Optional[str]=None
     registerDate:Optional[str]=None
     registerTime:Optional[str]=None
+    message:Optional[str]=None
 
 class RegistrationDetailsResponse(BaseModel):
     rfidTag:str
@@ -62,7 +63,8 @@ class CreateVehicleRegistration(BaseModel):
     placeToVisit:Optional[str]=None
     personToVisit:Optional[str]=None
     validityTill:str
-    total:str
+    total:Optional[str]=None
+    due:bool
     section:Optional[str]=None
     registerDate: str = Field(default_factory=lambda: datetime.now().strftime('%Y-%m-%d'))
     registerTime: str = Field(default_factory=lambda: datetime.now().strftime('%H:%M:%S'))
@@ -106,6 +108,7 @@ class VehicleRegistrationResponse(BaseModel):
     section:Optional[str]=None
     registerDate:str
     registerTime:str
+    message:str
     
     # New Fields
     # registerDate:Optional[str]=None  

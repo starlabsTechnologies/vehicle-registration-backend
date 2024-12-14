@@ -39,6 +39,7 @@ class AllotedTags(Base):
     salesType = Column(Text, nullable=False)  
     quantity = Column(Text, nullable=False)  
     total = Column(Text, nullable=False)  
+    due = Column(Boolean, nullable=False)
     blacklisted = Column(Boolean, default=False, nullable=False)
 
 
