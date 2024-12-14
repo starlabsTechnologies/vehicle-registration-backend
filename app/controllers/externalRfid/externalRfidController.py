@@ -1,7 +1,8 @@
-from app.services.externalRfid.externalRfidServices import getVehicleReg,createVehicleReg,editVehicleReg,deleteVehicleReg
+from app.services.externalRfid.externalRfidServices import getVehicleReg,createVehicleReg,editVehicleReg,deleteVehicleReg,getAllotedTag
 from app.models.vehicleRegistrationBase import VehicleRegistrationResponse,CreateVehicleRegistration,EditVehicleRegistration,DeleteVehicleRegistration,SuccessResponse
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
+from app.models.allotedTagsBase import ReceiptResponse
 from app.utils.logger import logger
 
 def getVehicleRegController(rfidTag:str,db:Session) -> VehicleRegistrationResponse:
@@ -25,7 +26,7 @@ def getVehicleRegController(rfidTag:str,db:Session) -> VehicleRegistrationRespon
             status_code=500
         )
 
-def createVehicleRegController(vehicleInfo:CreateVehicleRegistration,db:Session) -> SuccessResponse:
+def createVehicleRegController(vehicleInfo:CreateVehicleRegistration,db:Session) -> ReceiptResponse:
     try:
         if not vehicleInfo.rfidTag:
             logger.warning("Rfid tag required")
@@ -50,6 +51,15 @@ def createVehicleRegController(vehicleInfo:CreateVehicleRegistration,db:Session)
                 status_code=400
             )
         
+        tag=getAllotedTag(vehicleInfo.rfidTag,db)
+        
+        if tag is None:
+            logger.warning(f"Vehicle with Rfid Tag {vehicleInfo.rfidTag} not alloted tag")
+            return JSONResponse(
+                content={"message": f"Vehicle with Rfid Tag {vehicleInfo.rfidTag} not alloted tag"},
+                status_code=400
+            )
+
         newReg=createVehicleReg(vehicleInfo,db)
 
         if not newReg:
@@ -60,7 +70,16 @@ def createVehicleRegController(vehicleInfo:CreateVehicleRegistration,db:Session)
             )
         
         logger.info(f"Vehicle Registered successfully")
-        return SuccessResponse(
+        return ReceiptResponse(
+            rfidTag=tag.rfidTag,
+            typeOfVehicle=tag.typeOfVehicle,
+            vehicleNumber=tag.vehicleNumber,
+            regDate=tag.regDate,
+            regTime=tag.regTime,
+            userid=tag.userid,
+            barrierGate=tag.barrierGate,
+            salesType=tag.salesType,
+            due=tag.due,
             message="Vehicle Registered successfully"
         )
     

@@ -9,43 +9,6 @@ from fastapi import WebSocket, WebSocketDisconnect
 import random
 from app.utils.webSocketManager.socketManager import WebSocketManager
 import string
-import asyncio
-import json
-
-# async def getRfidFromServer(websocket:WebSocket) -> FetchRfidResponse:
-#     global count
-#     await websocket_manager.connect(websocket)
-#     try:
-#         while True:            
-#             # If count is odd, send "trigger" immediately
-#             if count % 2 != 0:
-#                 data = await websocket.receive_text()
-#                 print(f"Received message: {data}, count: {count}")
-#                 data_dict = json.loads(data)
-#                 response = "trigger"  # Send "trigger" when count is odd
-#                 # Send the response to the client
-#                 await websocket_manager.send_message(response, websocket)
-#                 print(f"Sent response: {response}")
-            
-#             # If count is even, send "stop" and just increment count without waiting for next input
-#             else:
-#                 response = "stop"  # Send "stop" when count is even
-#                 # Send the response to the client
-#                 await websocket_manager.send_message(response, websocket)
-#                 print(f"Sent response: {response}")
-            
-#             # Increment count after sending the response
-#             count += 1
-#             print(f"Count after increment: {count}")
-
-#             # **Do not wait for the next text input** when the response is "stop"
-#             if response == "stop":
-#                 # Simply continue with the next loop iteration
-#                 print("Sent stop, waiting for next cycle where count will be odd.")
-#                 continue
-#     except WebSocketDisconnect:
-#         await websocket_manager.disconnect(websocket)
-#         print("Client disconnected")
 
 def generate_sales_order_no():
     date_part=datetime.now().strftime("%Y-%m-%d")
@@ -57,10 +20,16 @@ def generate_transaction_id(vehicle_no):
     return f"{vehicle_no}{random_string}"
 
 def getVehicleReg(rfidTag:str,db:Session) -> Optional[VehicleRegistrationResponse]:
+    tag=db.query(AllotedTags).filter_by(rfidTag=rfidTag).one_or_none()
     vehicle=db.query(VehicleRegistration).filter_by(rfidTag=rfidTag).one_or_none()
 
     if vehicle is None:
         return None
+    
+    if tag is None:
+        message = "Not Allocated"
+    else:
+        message = "Allocated"
 
     return VehicleRegistrationResponse(
         rfidTag=vehicle.rfidTag,
@@ -76,7 +45,8 @@ def getVehicleReg(rfidTag:str,db:Session) -> Optional[VehicleRegistrationRespons
         validityTill=vehicle.validityTill,
         section=vehicle.section,
         registerDate=vehicle.registerDate,
-        registerTime=vehicle.registerTime
+        registerTime=vehicle.registerTime,
+        message=message
     )
 
 def createVehicleReg(vehicleInfo:CreateVehicleRegistration,db:Session) -> bool:
@@ -122,6 +92,7 @@ def getAllotedTag(rfidTag:str,db:Session) -> Optional[ReceiptResponse]:
         barrierGate=tag.barrierGate,
         salesType=tag.salesType,
         total=tag.total,
+        due=tag.due,
         regDate=tag.regDate,
         regTime=tag.regTime
     )
@@ -139,7 +110,8 @@ def createAllotedTag(dataInfo:CreateAllotedTag,db:Session) -> Optional[ReceiptRe
         barrierGate = "NCL BINA PROJECT MAIN BARRIER",
         salesType = "RFID ALLOCATION",
         quantity = "1", 
-        total = dataInfo.total
+        total = dataInfo.total,
+        due = dataInfo.due
     )
 
     db.add(newTag)
@@ -157,6 +129,7 @@ def createAllotedTag(dataInfo:CreateAllotedTag,db:Session) -> Optional[ReceiptRe
         barrierGate=newTag.barrierGate,
         salesType=newTag.salesType,
         total=newTag.total,
+        due=dataInfo.due,
         regDate=newTag.regDate,
         regTime=newTag.regTime
     )

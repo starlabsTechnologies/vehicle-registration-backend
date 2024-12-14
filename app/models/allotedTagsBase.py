@@ -20,18 +20,31 @@ class SuccessResponse(BaseModel):
     message:str
     isBlocked:Optional[bool]=False
 
-class ReceiptResponse(BaseModel):
+class NewAllotedReceiptResponse(BaseModel):
     rfidTag:str
     typeOfVehicle:VehicleTypeEnum
     vehicleNumber:str
     regDate:str
     regTime:str
     salesOrder:str 
-    transationId:str  
+    transationId:str   
     userid:str
     barrierGate:str
     salesType:str
     total:str
+    due:bool
+    message:Optional[str]=None
+
+class ReceiptResponse(BaseModel):
+    rfidTag:str
+    typeOfVehicle:VehicleTypeEnum
+    vehicleNumber:str
+    regDate:str
+    regTime:str  
+    userid:str
+    barrierGate:str
+    salesType:str
+    due:bool
     message:Optional[str]=None
 
 class CreateAllotedTag(BaseModel):
@@ -39,3 +52,4 @@ class CreateAllotedTag(BaseModel):
     typeOfVehicle:VehicleTypeEnum
     vehicleNumber:str
     total:str
+    due:bool

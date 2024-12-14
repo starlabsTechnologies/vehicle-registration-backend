@@ -1,13 +1,21 @@
 from sqlalchemy.orm import Session
 from app.schema.vehicleRegistration import VehicleRegistration
 from app.models.vehicleRegistrationBase import CreateVehicleRegistration,EditVehicleRegistration,DeleteVehicleRegistration,VehicleRegistrationResponse
+from app.schema.allotedTags import AllotedTags
+from app.models.allotedTagsBase import ReceiptResponse
 from typing import Optional
 
 def getVehicleReg(rfidTag:str,db:Session) -> Optional[VehicleRegistrationResponse]:
+    tag=db.query(AllotedTags).filter_by(rfidTag=rfidTag).one_or_none()
     vehicle=db.query(VehicleRegistration).filter_by(rfidTag=rfidTag).one_or_none()
 
     if vehicle is None:
         return None
+    
+    if tag is None:
+        message = "Not Allocated"
+    else:
+        message = "Allocated"
 
     return VehicleRegistrationResponse(
         rfidTag=vehicle.rfidTag,
@@ -23,7 +31,8 @@ def getVehicleReg(rfidTag:str,db:Session) -> Optional[VehicleRegistrationRespons
         validityTill=vehicle.validityTill,
         section=vehicle.section,
         registerDate=vehicle.registerDate,
-        registerTime=vehicle.registerTime
+        registerTime=vehicle.registerTime,
+        message=message
     )
 
 def createVehicleReg(vehicleInfo:CreateVehicleRegistration,db:Session) -> bool:
@@ -85,3 +94,24 @@ def deleteVehicleReg(vehicleInfo:DeleteVehicleRegistration,db:Session) -> bool:
     db.commit()
 
     return True
+
+def getAllotedTag(rfidTag:str,db:Session) -> Optional[ReceiptResponse]:
+    tag=db.query(AllotedTags).filter_by(rfidTag=rfidTag).one_or_none()
+
+    if tag is None:
+        return None
+
+    return ReceiptResponse(
+        rfidTag=tag.rfidTag,
+        typeOfVehicle=tag.typeOfVehicle,
+        vehicleNumber=tag.vehicleNumber,
+        salesOrder=tag.salesOrder,
+        transationId=tag.transationId,
+        userid=tag.userid,
+        barrierGate=tag.barrierGate,
+        salesType=tag.salesType,
+        total=tag.total,
+        due=tag.due,
+        regDate=tag.regDate,
+        regTime=tag.regTime
+    )

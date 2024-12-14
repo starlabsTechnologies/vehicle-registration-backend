@@ -1,68 +1,134 @@
 from app.services.internalRfid.internalRfidServices import getVehicleReg,createVehicleReg,editVehicleReg,deleteVehicleReg,getAllotedTag,createAllotedTag
 from app.models.vehicleRegistrationBase import FetchRfidResponse,VehicleRegistrationResponse,CreateVehicleRegistration,EditVehicleRegistration,DeleteVehicleRegistration,SuccessResponse
-from app.models.allotedTagsBase import ReceiptResponse
+from app.models.allotedTagsBase import ReceiptResponse,NewAllotedReceiptResponse
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
-from fastapi import WebSocket, WebSocketDisconnect
+from fastapi import WebSocket, WebSocketDisconnect,Request
 from app.utils.logger import logger
 from app.utils.webSocketManager.socketManager import WebSocketManager
 import asyncio
 import json
+from typing import Union
 
 websocket_manager = WebSocketManager()
 
-trigger_event = asyncio.Event()
-rfid_data = None
-rfid_event = asyncio.Event()
+# trigger_event = asyncio.Event()
+# rfid_data = None
+# rfid_event = asyncio.Event()
+# get_req_ip= None
+
+connection_states = {}
 
 async def getRfidFromServerController(websocket: WebSocket) -> None:
-    global rfid_data
-    await websocket_manager.connect(websocket)
-    global trigger
+    # global rfid_data,get_req_ip
+    # await websocket_manager.connect(websocket)
+
+    client_ip = websocket.client.host
+    logger.info(f"Client connected: {client_ip}")
+    await websocket_manager.connect(websocket, client_ip) 
+
+    if client_ip not in connection_states:
+        connection_states[client_ip] = {
+            "websocket": websocket,
+            "trigger_event": asyncio.Event(),
+            "rfid_event": asyncio.Event(),
+            "rfid_data": None,
+        }
+
     try:
         while True:
-            await trigger_event.wait()
+            state = connection_states[client_ip]
 
-            await websocket.send_text("trigger")
+            # await trigger_event.wait()
+            await state["trigger_event"].wait()
+
+            # await websocket.send_text("trigger")
+            # await websocket_manager.send_message("trigger",websocket)
+            await websocket_manager.send_message("trigger", client_ip)
             data = await websocket.receive_text()
-            print(f"Received message: {data}")
+            logger.info(f"Received message: {data}")
             data_dict = json.loads(data)
 
-            rfid_data = data_dict["rfid"]
-            if rfid_data:
-                print(f"Received RFID: {rfid_data}")
-                rfid_event.set() 
+            state["rfid_data"] = data_dict.get("rfid")
+            if state["rfid_data"]:
+                logger.info(f"Received RFID: {state['rfid_data']}")
+                state["rfid_event"].set()
 
-            trigger = False
-            await websocket.send_text("stop")
-            print("Sent 'stop' to websocket")
-            trigger_event.clear()
-            await asyncio.sleep(0.5)
+            # rfid_data = data_dict["rfid"]
+            # if rfid_data:
+            #     print(f"Received RFID: {rfid_data}")
+            #     rfid_event.set()
+
+            # trigger = False
+            # await websocket.send_text("stop")
+            # await websocket_manager.send_message("stop",websocket)
+            # await websocket_manager.send_message("stop", get_req_ip)
+            await websocket_manager.send_message("stop", client_ip)
+            logger.info("Sent 'stop' to websocket")
+            state["trigger_event"].clear()
+            # trigger_event.clear()
+            # await asyncio.sleep(0.5)
 
     except WebSocketDisconnect:
-        print("WebSocket disconnected")
+        logger.info("WebSocket disconnected")
+        # await websocket_manager.disconnect(get_req_ip)
+        if client_ip in connection_states:
+            del connection_states[client_ip]
 
-async def fetchVehicleRegControllerwithRfid(db:Session) -> FetchRfidResponse:
-    trigger_event.set()
-    global rfid_data
-    rfid_event.clear()
+        await websocket_manager.disconnect(client_ip)
 
-    await rfid_event.wait()
+async def fetchVehicleRegControllerwithRfid(request:Request,db:Session) -> FetchRfidResponse:
+    # trigger_event.set()
+    # global rfid_data,get_req_ip
+    # rfid_event.clear()
 
-    if rfid_data is None:
-        return {"message": "No RFID data received", "rfid": None}
+    # get_req_ip = request.client.host
+    client_ip = request.client.host
+    logger.info(f"Client IP in GET request: {client_ip}")
+
+    if client_ip not in connection_states:
+        return {"message": "No active WebSocket connection for this IP", "rfidTag": "00000000000000000000000"}
+    
+    state = connection_states[client_ip]
+
+    state["trigger_event"].set()
+
+    # websocket = websocket_manager.get_websocket(get_req_ip)
+
+    # await rfid_event.wait()
+
+    # if rfid_data is None:
+    #     return {"message": "No RFID data received", "rfid": None}
+
+    try:
+        # Wait for RFID data or timeout
+        await asyncio.wait_for(state["rfid_event"].wait(), timeout=10)
+    except asyncio.TimeoutError:
+        return {"message": "Timeout waiting for RFID data", "rfidTag": "00000000000000000000000"}
+
+    rfid_data = state["rfid_data"]
+    if not rfid_data:
+        return {"message": "No RFID data received", "rfidTag": None}
 
     try:
         vehicleReg=getVehicleReg(rfid_data,db)
+        tag=getAllotedTag(rfid_data,db)
+
+        if tag is None:
+            message="Not Alloted"
+        else:
+            message="Alloted"
 
         if vehicleReg is None:
             logger.info(f"Fetched rfid tag: {rfid_data}")
             return FetchRfidResponse(
-                rfidTag=rfid_data
+                rfidTag=rfid_data,
+                message=message
             )
         
         else:        
             logger.info(f"Fetched vehicle reg with rfid tag: {rfid_data}")
+            vehicleReg.message = "Vehicle Registered successfully"
             return vehicleReg
     
     except Exception as error:
@@ -71,27 +137,6 @@ async def fetchVehicleRegControllerwithRfid(db:Session) -> FetchRfidResponse:
             content={"message": "Error while fetching data"},
             status_code=500
         )
-
-# async def fetchVehicleRegControllerwithRfid(db:Session) -> FetchRfidResponse:
-#     try:
-#         vehicleReg=getVehicleReg(rfid_data['rfid'],db)
-
-#         if vehicleReg is None:
-#             logger.info(f"Fetched rfid tag: {rfid_data['rfid']}")
-#             return FetchRfidResponse(
-#                 rfidTag=rfid_data['rfid']
-#             )
-        
-#         else:        
-#             logger.info(f"Fetched vehicle reg with rfid tag: {rfid_data['rfid']}")
-#             return vehicleReg
-    
-#     except Exception as error:
-#         logger.error(f"Error while fetching data: {error}")
-#         return JSONResponse(
-#             content={"message": "Error while fetching data"},
-#             status_code=500
-#         )
 
 def getVehicleRegController(rfidTag:str,db:Session) -> VehicleRegistrationResponse:
     try:
@@ -114,7 +159,7 @@ def getVehicleRegController(rfidTag:str,db:Session) -> VehicleRegistrationRespon
             status_code=500
         )
 
-def createVehicleRegController(vehicleInfo:CreateVehicleRegistration,db:Session) -> ReceiptResponse:
+def createVehicleRegController(vehicleInfo:CreateVehicleRegistration,db:Session) -> Union[ReceiptResponse,NewAllotedReceiptResponse]:
     try:
         if not vehicleInfo.rfidTag:
             logger.warning("Rfid tag required")
@@ -182,8 +227,18 @@ def createVehicleRegController(vehicleInfo:CreateVehicleRegistration,db:Session)
             )
         
         logger.info(f"Vehicle Registered successfully")
-        tag.message = "Vehicle Registered successfully"
-        return tag
+        return ReceiptResponse(
+            rfidTag=tag.rfidTag,
+            typeOfVehicle=tag.typeOfVehicle,
+            vehicleNumber=tag.vehicleNumber,
+            regDate=tag.regDate,
+            regTime=tag.regTime,
+            userid=tag.userid,
+            barrierGate=tag.barrierGate,
+            salesType=tag.salesType,
+            due=tag.due,
+            message="Vehicle Registered successfully"
+        )
     
     except Exception as error:
         logger.error(f"Error occurred while registering vehicle: {error}")
