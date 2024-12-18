@@ -2,13 +2,14 @@ from sqlalchemy.orm import Session
 from app.schema.vehicleRegistration import VehicleRegistration
 from app.schema.allotedTags import AllotedTags
 from app.models.allotedTagsBase import CreateAllotedTag,ReceiptResponse
-from app.models.vehicleRegistrationBase import FetchRfidResponse,CreateVehicleRegistration,EditVehicleRegistration,DeleteVehicleRegistration,VehicleRegistrationResponse
+from app.models.vehicleRegistrationBase import CreateVehicleRegistration,EditVehicleRegistration,DeleteVehicleRegistration,VehicleRegistrationResponse
 from typing import Optional
 from datetime import datetime
-from fastapi import WebSocket, WebSocketDisconnect
+from app.schema.allotedTagsLogs import AllotedTagsLogs,ActionsTypeEnum
+from app.schema.vehicleRegistrationLogs import VehicleRegistrationLogs
 import random
-from app.utils.webSocketManager.socketManager import WebSocketManager
 import string
+from enum import Enum
 
 def generate_sales_order_no():
     date_part=datetime.now().strftime("%Y-%m-%d")
@@ -76,6 +77,24 @@ def createVehicleReg(vehicleInfo:CreateVehicleRegistration,db:Session) -> bool:
     
     return False
 
+def createVehicleRegistrationLogs(vehicleInfo:CreateVehicleRegistration,db:Session,actionByUsername:str) -> bool:
+    createVehicleRegLogs=VehicleRegistrationLogs(
+        rfidTag = vehicleInfo.rfidTag,
+        vehicleNumber = vehicleInfo.vehicleNumber,
+        typeOfVehicle = vehicleInfo.typeOfVehicle,
+        action = ActionsTypeEnum.CREATED.value,
+        actionBy = actionByUsername
+    )
+
+    db.add(createVehicleRegLogs)
+    db.commit()
+    db.refresh(createVehicleRegLogs)
+
+    if(createVehicleRegLogs):
+        return True
+    
+    return False
+
 def getAllotedTag(rfidTag:str,db:Session) -> Optional[ReceiptResponse]:
     tag=db.query(AllotedTags).filter_by(rfidTag=rfidTag).one_or_none()
 
@@ -136,6 +155,24 @@ def createAllotedTag(dataInfo:CreateAllotedTag,db:Session) -> Optional[ReceiptRe
     
     return None
 
+def createAllotedTagsLogs(dataInfo:CreateAllotedTag,db:Session,actionByUsername:str) -> bool:
+    createLogs=AllotedTagsLogs(
+        rfidTag = dataInfo.rfidTag,
+        vehicleNumber = dataInfo.vehicleNumber,
+        typeOfVehicle = dataInfo.typeOfVehicle,
+        action = ActionsTypeEnum.CREATED.value,
+        actionBy = actionByUsername
+    )
+
+    db.add(createLogs)
+    db.commit()
+    db.refresh(createLogs)
+
+    if(createLogs):
+        return True
+    
+    return False
+
 def editVehicleReg(vehicleInfo:EditVehicleRegistration,db:Session) -> bool:
     vehicleReg=db.query(VehicleRegistration).filter_by(rfidTag=vehicleInfo.rfidTag).one_or_none()
 
@@ -158,6 +195,24 @@ def editVehicleReg(vehicleInfo:EditVehicleRegistration,db:Session) -> bool:
 
     return True
 
+def editVehicleRegLogs(vehicleInfo:EditVehicleRegistration,db:Session,actionByUsername:str) -> bool:
+    editLogs=VehicleRegistrationLogs(
+        rfidTag = vehicleInfo.rfidTag,
+        vehicleNumber = vehicleInfo.vehicleNumber,
+        typeOfVehicle = vehicleInfo.typeOfVehicle,
+        action = ActionsTypeEnum.EDITED.value,
+        actionBy = actionByUsername
+    )
+
+    db.add(editLogs)
+    db.commit()
+    db.refresh(editLogs)
+
+    if(editLogs):
+        return True
+    
+    return False
+
 def deleteVehicleReg(vehicleInfo:DeleteVehicleRegistration,db:Session) -> bool:
     vehicleReg=db.query(VehicleRegistration).filter_by(rfidTag=vehicleInfo.rfidTag).one_or_none()
 
@@ -168,3 +223,20 @@ def deleteVehicleReg(vehicleInfo:DeleteVehicleRegistration,db:Session) -> bool:
     db.commit()
 
     return True
+
+def deleteVehicleRegLogs(vehicleInfo:DeleteVehicleRegistration,db:Session,actionByUsername:str) -> bool:
+    delLogs=VehicleRegistrationLogs(
+        rfidTag = vehicleInfo.rfidTag,
+        vehicleNumber = vehicleInfo.vehicleNumber,
+        action = ActionsTypeEnum.DELETED.value,
+        actionBy = actionByUsername
+    )
+
+    db.add(delLogs)
+    db.commit()
+    db.refresh(delLogs)
+
+    if(delLogs):
+        return True
+    
+    return False

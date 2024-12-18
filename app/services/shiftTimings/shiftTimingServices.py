@@ -1,7 +1,14 @@
 from sqlalchemy.orm import Session
 from app.schema.shiftTiming import ShiftTiming
 from app.models.shiftTimingBase import ShiftTimingResponse,ShiftTimingUpdate
+from app.schema.shiftTimingLogs import ShiftTimingLogs
 from typing import List
+from enum import Enum
+
+class ActionsTypeEnum(Enum):  # Using Python's Enum class
+    DELETED = "DELETED"
+    CREATED = "CREATED"
+    EDITED = "EDITED"
 
 def getShifts(db:Session) -> List[ShiftTimingResponse] :
     shift_timings=db.query(ShiftTiming).all()
@@ -31,3 +38,35 @@ def updateShifts(db:Session,shift_timings: List[ShiftTimingUpdate]) -> bool :
         db.refresh(shift)
 
     return True
+
+def updateShiftTimingsLogs(shift_timings: List[ShiftTimingUpdate],db:Session,actionByUsername:str) -> bool:
+    newShift = [
+        ShiftTimingLogs(
+            shift_name=shift_timings[0].shift_name,
+            from_time=shift_timings[0].from_time,
+            to_time=shift_timings[0].to_time,
+            action=ActionsTypeEnum.EDITED.value,
+            actionBy=actionByUsername
+        ),
+        ShiftTimingLogs(
+            shift_name=shift_timings[1].shift_name,
+            from_time=shift_timings[1].from_time,
+            to_time=shift_timings[1].to_time,
+            action=ActionsTypeEnum.EDITED.value,
+            actionBy=actionByUsername
+        ),
+        ShiftTimingLogs(
+            shift_name=shift_timings[2].shift_name,
+            from_time=shift_timings[2].from_time,
+            to_time=shift_timings[2].to_time,
+            action=ActionsTypeEnum.EDITED.value,
+            actionBy=actionByUsername
+        )]
+
+    db.add_all(newShift)
+    db.commit()
+
+    if(newShift):
+        return True
+    
+    return False

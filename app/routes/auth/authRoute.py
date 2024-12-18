@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends,Request
 from app.config.db_config import get_db
 from sqlalchemy.orm import Session
 from app.models.userInfoBase import UserInfoResponse,UserLogin,CreateUser,SuccessResponse,AuthorizeUser,AuthResponse
@@ -15,12 +15,12 @@ def authUser(userInfo:AuthorizeUser,db:Session=Depends(get_db)):
     return authorizeUserController(userInfo,db)
 
 @auth_router.post('/user',response_model=SuccessResponse)
-def createuser(userInfo:CreateUser,db:Session=Depends(get_db)):
-    return createUserController(userInfo,db)
+def createuser(req:Request,userInfo:CreateUser,db:Session=Depends(get_db)):
+    return createUserController(req,userInfo,db)
 
 @auth_router.delete('/user/{username}',response_model=SuccessResponse)
-def deleteuser(username:str,db:Session=Depends(get_db)):
-    return deleteUserController(username,db)
+def deleteuser(req:Request,username:str,db:Session=Depends(get_db)):
+    return deleteUserController(req,username,db)
 
 # {         
 # "username": "rashmi",         

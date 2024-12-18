@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from app.schema.userInfo import UserInfo, AuthTypeEnum
+from app.schema.userInfoLogs import UserInfoLogs
 from app.models.userInfoBase import UserInfoResponse,CreateUser
 import bcrypt
 from enum import Enum
@@ -10,6 +11,11 @@ class AuthResult(Enum):
     INCORRECT_PASSWORD = "Incorrect password"
     UNAUTHORIZED_ACCESS = "Unauthorized access"
     AUTHORIZED = "Authorized"
+
+class ActionsTypeEnum(Enum):  # Using Python's Enum class
+    DELETED = "DELETED"
+    CREATED = "CREATED"
+    EDITED = "EDITED"
 
 def authorizeUser(username:str,password:str,db:Session) -> AuthResult:
     user=db.query(UserInfo).filter_by(username=username).one_or_none()
@@ -95,6 +101,23 @@ def createUser(userInfo: CreateUser,db:Session) -> bool:
     
     return False
 
+def logCreateUser(username: str,db:Session,actionByUsername:str) -> bool:
+    print(username,ActionsTypeEnum.CREATED,actionByUsername)
+    logNewUser= UserInfoLogs(
+        username=username,
+        action=ActionsTypeEnum.CREATED.value,
+        actionBy=actionByUsername,
+    )
+
+    db.add(logNewUser)
+    db.commit()
+    db.refresh(logNewUser)
+
+    if(logNewUser):
+        return True
+    
+    return False
+
 def deleteUserByUsername(username:str,db:Session) -> bool:
     user = db.query(UserInfo).filter_by(username=username).one_or_none()
 
@@ -105,3 +128,19 @@ def deleteUserByUsername(username:str,db:Session) -> bool:
     db.commit()
 
     return True
+
+def logDeleteUser(username: str,db:Session,actionByUsername:str) -> bool:
+    logDelUser= UserInfoLogs(
+        username=username,
+        action=ActionsTypeEnum.DELETED.value,
+        actionBy=actionByUsername,
+    )
+
+    db.add(logDelUser)
+    db.commit()
+    db.refresh(logDelUser)
+
+    if(logDelUser):
+        return True
+    
+    return False

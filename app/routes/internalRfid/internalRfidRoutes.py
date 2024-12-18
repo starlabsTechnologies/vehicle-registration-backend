@@ -23,16 +23,16 @@ def getVehicleReg(rfidTag:str,db:Session=Depends(get_db)):
     return getVehicleRegController(rfidTag,db)
 
 @vehicleReg_router.post('/internal-rfid',response_model=ReceiptResponse)
-def createVehicleReg(vehicleInfo:CreateVehicleRegistration,db:Session=Depends(get_db)):
-    return createVehicleRegController(vehicleInfo,db)
+def createVehicleReg(req:Request,vehicleInfo:CreateVehicleRegistration,db:Session=Depends(get_db)):
+    return createVehicleRegController(req,vehicleInfo,db)
 
 @vehicleReg_router.put('/internal-rfid',response_model=SuccessResponse)
-def editVehicleReg(vehicleInfo:EditVehicleRegistration,db:Session=Depends(get_db)):
-    return editVehicleRegController(vehicleInfo,db)
+def editVehicleReg(req:Request,vehicleInfo:EditVehicleRegistration,db:Session=Depends(get_db)):
+    return editVehicleRegController(req,vehicleInfo,db)
 
 @vehicleReg_router.delete('/internal-rfid',response_model=SuccessResponse)
-def deleteVehicleReg(vehicleInfo:DeleteVehicleRegistration,db:Session=Depends(get_db)):
-    return deleteVehicleRegController(vehicleInfo,db)
+def deleteVehicleReg(req:Request,vehicleInfo:DeleteVehicleRegistration,db:Session=Depends(get_db)):
+    return deleteVehicleRegController(req,vehicleInfo,db)
 
 
 # {

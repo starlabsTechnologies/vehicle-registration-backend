@@ -1,8 +1,9 @@
 from sqlalchemy.orm import Session
+from fastapi import Request
 from fastapi.responses import JSONResponse
 from app.utils.logger import logger
 from app.models.doMaintenanceBase import DONumberResponse, CreateDONumber, UpdateDONumber
-from app.services.doMaintenance.doMaintenanceServices import getDoDataByDoNumber,createDONumber,deleteDONumber,updateDONumber
+from app.services.doMaintenance.doMaintenanceServices import getDoDataByDoNumber,createDONumber,deleteDONumber,updateDONumber,createDONumberLogs,updateDONumberLogs,deleteDONumberLogs
 
 def getDoDataController(doNumber:str,db:Session) -> DONumberResponse:
     try:
@@ -26,8 +27,19 @@ def getDoDataController(doNumber:str,db:Session) -> DONumberResponse:
         )
 
 
-def createDoNumberController(doInfo:CreateDONumber,db:Session) -> JSONResponse:
+def createDoNumberController(req:Request,doInfo:CreateDONumber,db:Session) -> JSONResponse:
     try:
+        headers = req.headers
+        authorization = headers.get("authorization")
+        if not authorization:
+            logger.warning("Authorization header missing")
+            return JSONResponse(
+                content={"message": "Authorization header missing"},
+                status_code=400
+            )
+        
+        actionByUsername = authorization
+
         if(not doInfo.doNumber or not doInfo.transporter or not doInfo.weighbridgeNo or not doInfo.validityTill or not doInfo.allotedQty or not doInfo.releasedQty ):
             logger.warning("Please Enter required fields")
             return JSONResponse(
@@ -61,6 +73,13 @@ def createDoNumberController(doInfo:CreateDONumber,db:Session) -> JSONResponse:
             )
 
         logger.info(f"Do Number {doInfo.doNumber} created successfully")
+
+        createDONumberLog = createDONumberLogs(doInfo,db,actionByUsername)
+        if(createDONumberLog):
+            logger.info("DO Number creation logged successfully")
+        else:
+            logger.info("Logging of DO Number creation unsuccessful")
+
         return JSONResponse(
             content={"message": "Do Number created successfully"},
             status_code=201
@@ -73,8 +92,19 @@ def createDoNumberController(doInfo:CreateDONumber,db:Session) -> JSONResponse:
             status_code=500
         )
 
-def updateDONumberController(doInfo:UpdateDONumber,db:Session) -> JSONResponse:
+def updateDONumberController(req:Request,doInfo:UpdateDONumber,db:Session) -> JSONResponse:
     try:
+        headers = req.headers
+        authorization = headers.get("authorization")
+        if not authorization:
+            logger.warning("Authorization header missing")
+            return JSONResponse(
+                content={"message": "Authorization header missing"},
+                status_code=400
+            )
+        
+        actionByUsername = authorization
+
         if not doInfo.doNumber:
             logger.warning("Please Enter doNumber")
             return JSONResponse(
@@ -86,6 +116,13 @@ def updateDONumberController(doInfo:UpdateDONumber,db:Session) -> JSONResponse:
         
         if(success):
             logger.info(f"DO Number {doInfo.doNumber} updated successfully")
+
+            updateDONumberLog = updateDONumberLogs(doInfo,db,actionByUsername)
+            if(updateDONumberLog):
+                logger.info("DO Number edit logged successfully")
+            else:
+                logger.info("Logging of DO Number edit unsuccessful")
+
             return JSONResponse(
                 content={"message": "DO Number updated successfully"},
                 status_code=200
@@ -104,8 +141,19 @@ def updateDONumberController(doInfo:UpdateDONumber,db:Session) -> JSONResponse:
             status_code=500
         )
 
-def deleteDONumberController(doNumber:str,db:Session) -> JSONResponse:
+def deleteDONumberController(req:Request,doNumber:str,db:Session) -> JSONResponse:
     try:
+        headers = req.headers
+        authorization = headers.get("authorization")
+        if not authorization:
+            logger.warning("Authorization header missing")
+            return JSONResponse(
+                content={"message": "Authorization header missing"},
+                status_code=400
+            )
+        
+        actionByUsername = authorization
+
         if not doNumber:
             logger.warning("Please Enter doInfo")
             return JSONResponse(
@@ -124,6 +172,13 @@ def deleteDONumberController(doNumber:str,db:Session) -> JSONResponse:
 
         if(success):
             logger.info(f"DO Number {doNumber} deleted successfully")
+
+            delDONumberLog = deleteDONumberLogs(doNumber,db,actionByUsername)
+            if(delDONumberLog):
+                logger.info("DO Number delete logged successfully")
+            else:
+                logger.info("Logging of DO Number delete unsuccessful")
+                
             return JSONResponse(
                 content={"message": "DO Number deleted successfully"},
                 status_code=200

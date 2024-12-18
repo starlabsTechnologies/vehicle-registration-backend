@@ -1,13 +1,25 @@
 # from app.services.blockUser.blockUserServices import changeBlacklistStatus,getRfidFromServer
 from fastapi import HTTPException, requests
-from app.services.blockUser.blockUserServices import changeBlacklistStatus
+from app.services.blockUser.blockUserServices import changeBlacklistStatus,changeBlackListStatusLogs
 from app.models.allotedTagsBase import BlockUser,SuccessResponse
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
+from fastapi import Request
 from app.utils.logger import logger
 
-def blockUserController(userInfo:BlockUser,db:Session) -> SuccessResponse:
+def blockUserController(req:Request,userInfo:BlockUser,db:Session) -> SuccessResponse:
     try:
+        headers = req.headers
+        authorization = headers.get("authorization")
+        if not authorization:
+            logger.warning("Authorization header missing")
+            return JSONResponse(
+                content={"message": "Authorization header missing"},
+                status_code=400
+            )
+        
+        actionByUsername = authorization
+        
         user=changeBlacklistStatus(userInfo.rfidTag,userInfo.vehicleNo,userInfo.action,db)
 
         if user is None:
@@ -25,6 +37,13 @@ def blockUserController(userInfo:BlockUser,db:Session) -> SuccessResponse:
             )
         
         logger.info("User status updated successfully.")
+
+        changeBlacklistLogs = changeBlackListStatusLogs(userInfo.rfidTag,userInfo.vehicleNo,userInfo.action,actionByUsername,db)
+        if(changeBlacklistLogs):
+            logger.info("User status edit logged successfully")
+        else:
+            logger.info("Logging of User status edit log unsuccessful")
+
         return SuccessResponse(
             message="User status updated successfully.",
             isBlocked=True

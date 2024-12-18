@@ -2,7 +2,11 @@ from .userInfo import UserInfo
 from .allotedTags import AllotedTags
 from .vehicleRegistration import VehicleRegistration
 from .vehicleInOut import VehicleInOut
-from .rfidDeleteRecord import DeleteRifdRecord
+from .vehicleRegistrationLogs import VehicleRegistrationLogs
 from .doMaintenance import DoData
 from .shiftTiming import ShiftTiming
 from .do_logs import DoLog
+from .allotedTagsLogs import AllotedTagsLogs
+from .shiftTimingLogs import ShiftTimingLogs
+from .userInfoLogs import UserInfoLogs
+from .vehicleInOutLogs import VehicleInOutLogs

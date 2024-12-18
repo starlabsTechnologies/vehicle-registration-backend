@@ -2,8 +2,9 @@ from sqlalchemy.orm import Session
 from app.services.auth.authServices import getUserByUserName
 from app.models.userInfoBase import UserInfoResponse,EditUser,SuccessResponse
 from fastapi.responses import JSONResponse
-from app.services.changePass.changePassServices import editUser
+from app.services.changePass.changePassServices import editUser,changePassLogs
 from app.utils.logger import logger
+from fastapi import Request
 
 def getUserController(username:str,db:Session) -> UserInfoResponse:
     try:
@@ -26,8 +27,19 @@ def getUserController(username:str,db:Session) -> UserInfoResponse:
             status_code=500
         )
 
-def editUserController(userInfo:EditUser,db:Session) -> SuccessResponse:
+def editUserController(req:Request,userInfo:EditUser,db:Session) -> SuccessResponse:
     try:
+        headers = req.headers
+        authorization = headers.get("authorization")
+        if not authorization:
+            logger.warning("Authorization header missing")
+            return JSONResponse(
+                content={"message": "Authorization header missing"},
+                status_code=400
+            )
+        
+        actionByUsername = authorization
+
         if(len(userInfo.mobileNumber)!=10 and len(userInfo.mobileNumber)!=0):
             logger.warning("Mobile Number should be 10 digits exactly!")
             return JSONResponse(
@@ -45,6 +57,12 @@ def editUserController(userInfo:EditUser,db:Session) -> SuccessResponse:
             )
         
         logger.info("User details saved successfully")
+
+        logChangePass = changePassLogs(userInfo.username,db,actionByUsername)
+        if(logChangePass):
+            logger.info("User edit logged successfully")
+        else:
+            logger.info("Logging of User edit log unsuccessful")
         return SuccessResponse(message="User details saved successfully")
     
     except Exception as error:
