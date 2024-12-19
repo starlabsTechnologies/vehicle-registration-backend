@@ -1,6 +1,13 @@
 from sqlalchemy.orm import Session
 from app.schema.doMaintenance import DoData
 from app.models.doMaintenanceBase import CreateDONumber,DONumberResponse, UpdateDONumber
+from app.schema.do_logs import DoLog
+from enum import Enum
+
+class ActionsTypeEnum(Enum):  # Using Python's Enum class
+    DELETED = "DELETED"
+    CREATED = "CREATED"
+    EDITED = "EDITED"
 
 def getDoDataByDoNumber(doNumber:str,db:Session) -> DONumberResponse:
     doData=db.query(DoData).filter_by(doNumber=doNumber).one_or_none()
@@ -55,6 +62,24 @@ def createDONumber(doInfo:CreateDONumber,db:Session) -> bool:
     
     return False
 
+def createDONumberLogs(doInfo:CreateDONumber,db:Session,actionByUsername:str) -> bool:
+    createDONumberLog = DoLog(
+        doNumber=doInfo.doNumber,
+        weighbridgeNo=doInfo.weighbridgeNo,
+        transporter=doInfo.transporter,
+        action=ActionsTypeEnum.CREATED.value,
+        actionBy=actionByUsername,
+    )
+
+    db.add(createDONumberLog)
+    db.commit()
+    db.refresh(createDONumberLog)
+
+    if(createDONumberLog):
+        return True
+    
+    return False
+
 def updateDONumber(doInfo:UpdateDONumber,db:Session) -> bool:
     doData=db.query(DoData).filter_by(doNumber=doInfo.doNumber).one_or_none()
 
@@ -73,6 +98,24 @@ def updateDONumber(doInfo:UpdateDONumber,db:Session) -> bool:
     db.commit()
     return True
 
+def updateDONumberLogs(doInfo:CreateDONumber,db:Session,actionByUsername:str) -> bool:
+    updateDONumberLog= DoLog(
+        doNumber=doInfo.doNumber,
+        weighbridgeNo=doInfo.weighbridgeNo,
+        transporter=doInfo.transporter,
+        action=ActionsTypeEnum.EDITED.value,
+        actionBy=actionByUsername,
+    )
+
+    db.add(updateDONumberLog)
+    db.commit()
+    db.refresh(updateDONumberLog)
+
+    if(updateDONumberLog):
+        return True
+    
+    return False
+
 def deleteDONumber(doNumber:str,db:Session) -> bool:
     doData=db.query(DoData).filter_by(doNumber=doNumber).one_or_none()
 
@@ -83,3 +126,19 @@ def deleteDONumber(doNumber:str,db:Session) -> bool:
     db.commit()
 
     return True
+
+def deleteDONumberLogs(doNumber:str,db:Session,actionByUsername:str) -> bool:
+    deleteDONumberLog= DoLog(
+        doNumber=doNumber,
+        action=ActionsTypeEnum.DELETED.value,
+        actionBy=actionByUsername,
+    )
+
+    db.add(deleteDONumberLog)
+    db.commit()
+    db.refresh(deleteDONumberLog)
+
+    if(deleteDONumberLog):
+        return True
+    
+    return False

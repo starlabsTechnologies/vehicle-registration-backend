@@ -1,7 +1,9 @@
 from sqlalchemy.orm import Session
 from app.schema.userInfo import UserInfo
 from app.models.userInfoBase import EditUser
+from app.schema.userInfoLogs import UserInfoLogs,ActionsTypeEnum
 import bcrypt
+from enum import Enum
 
 def editUser(userInfo:EditUser,db:Session) -> bool:
     user = db.query(UserInfo).filter_by(username=userInfo.username).one_or_none()
@@ -25,3 +27,19 @@ def editUser(userInfo:EditUser,db:Session) -> bool:
     db.refresh(user)
 
     return True
+
+def changePassLogs(username:str,db:Session,actionByUsername:str) -> bool:
+    logChangePass= UserInfoLogs(
+        username=username,
+        action=ActionsTypeEnum.EDITED.value,
+        actionBy=actionByUsername,
+    )
+
+    db.add(logChangePass)
+    db.commit()
+    db.refresh(logChangePass)
+
+    if(logChangePass):
+        return True
+    
+    return False

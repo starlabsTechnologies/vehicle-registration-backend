@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends,Request
 from app.config.db_config import get_db
 from sqlalchemy.orm import Session
 from app.models.doMaintenanceBase import DONumberResponse,CreateDONumber,SuccessResponse,UpdateDONumber
@@ -11,16 +11,16 @@ def getDoMaintenance(doNumber:str,db:Session=Depends(get_db)):
     return getDoDataController(doNumber,db)
 
 @doMaintenance_router.post('/do-maintenance',response_model=SuccessResponse)
-def createDoNumber(doInfo:CreateDONumber,db:Session=Depends(get_db)):
-    return createDoNumberController(doInfo,db)
+def createDoNumber(req:Request,doInfo:CreateDONumber,db:Session=Depends(get_db)):
+    return createDoNumberController(req,doInfo,db)
 
 @doMaintenance_router.delete('/do-maintenance/{doNumber}',response_model=SuccessResponse)
-def deleteDoNumber(doNumber:str,db:Session=Depends(get_db)):
-    return deleteDONumberController(doNumber,db)
+def deleteDoNumber(req:Request,doNumber:str,db:Session=Depends(get_db)):
+    return deleteDONumberController(req,doNumber,db)
 
 @doMaintenance_router.patch('/do-maintenance',response_model=SuccessResponse)
-def updateDONumber(doInfo:UpdateDONumber,db:Session=Depends(get_db)):
-    return updateDONumberController(doInfo,db)
+def updateDONumber(req:Request,doInfo:UpdateDONumber,db:Session=Depends(get_db)):
+    return updateDONumberController(req,doInfo,db)
 
 # {
 #   "doNumber": "1212",

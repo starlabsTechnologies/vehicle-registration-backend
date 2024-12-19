@@ -1,10 +1,11 @@
-from app.services.shiftTimings.shiftTimingServices import getShifts, updateShifts
+from app.services.shiftTimings.shiftTimingServices import getShifts, updateShifts,updateShiftTimingsLogs
 from app.models.shiftTimingBase import ShiftTimingResponse,ShiftTimingUpdate
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
 from datetime import datetime, timedelta
 from typing import List
 from app.utils.logger import logger
+from fastapi import Request
 
 def getShiftTimingsController(db:Session) -> List[ShiftTimingResponse] :
     try:
@@ -27,8 +28,19 @@ def getShiftTimingsController(db:Session) -> List[ShiftTimingResponse] :
             status_code=500
         )
 
-def updateShiftTimingsController(db:Session,shift_timings: List[ShiftTimingUpdate]) -> List[ShiftTimingResponse] :
+def updateShiftTimingsController(req:Request,db:Session,shift_timings: List[ShiftTimingUpdate]) -> List[ShiftTimingResponse] :
     try:
+        headers = req.headers
+        authorization = headers.get("authorization")
+        if not authorization:
+            logger.warning("Authorization header missing")
+            return JSONResponse(
+                content={"message": "Authorization header missing"},
+                status_code=400
+            )
+        
+        actionByUsername = authorization
+
         previous_end_time = None
         for shifts in shift_timings:
             from_datetime = datetime.combine(datetime.today(), shifts.from_time)
@@ -65,6 +77,13 @@ def updateShiftTimingsController(db:Session,shift_timings: List[ShiftTimingUpdat
                 )
         
         logger.info("Shift timings updated successfully")
+
+        logChangePass = updateShiftTimingsLogs(shift_timings,db,actionByUsername)
+        if(logChangePass):
+            logger.info("Shift Timings edit logged successfully")
+        else:
+            logger.info("Logging of Shift Timings edit log unsuccessful")
+
         return getShifts(db)
     
     except Exception as error:

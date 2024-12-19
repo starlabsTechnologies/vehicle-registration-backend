@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from app.config.db_config import get_db
 from app.controllers.changePass.changePassController import getUserController,editUserController
 from app.models.userInfoBase import EditUser,SuccessResponse,UserInfoResponse
@@ -13,8 +13,8 @@ def getUser(username:str,db:Session=Depends(get_db)):
     return getUserController(username,db)
 
 @changePass_router.put('/change-pass',response_model=SuccessResponse)
-def editUser(userInfo:EditUser,db:Session=Depends(get_db)):
-    return editUserController(userInfo,db)
+def editUser(req:Request,userInfo:EditUser,db:Session=Depends(get_db)):
+    return editUserController(req,userInfo,db)
 
 
 # {

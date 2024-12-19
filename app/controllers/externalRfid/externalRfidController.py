@@ -1,9 +1,10 @@
-from app.services.externalRfid.externalRfidServices import getVehicleReg,createVehicleReg,editVehicleReg,deleteVehicleReg,getAllotedTag
+from app.services.externalRfid.externalRfidServices import getVehicleReg,createVehicleReg,editVehicleReg,deleteVehicleReg,getAllotedTag,createVehicleRegistrationLogs,editVehicleRegLogs,deleteVehicleRegLogs
 from app.models.vehicleRegistrationBase import VehicleRegistrationResponse,CreateVehicleRegistration,EditVehicleRegistration,DeleteVehicleRegistration,SuccessResponse
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
 from app.models.allotedTagsBase import ReceiptResponse
 from app.utils.logger import logger
+from fastapi import Request
 
 def getVehicleRegController(rfidTag:str,db:Session) -> VehicleRegistrationResponse:
     try:
@@ -26,8 +27,19 @@ def getVehicleRegController(rfidTag:str,db:Session) -> VehicleRegistrationRespon
             status_code=500
         )
 
-def createVehicleRegController(vehicleInfo:CreateVehicleRegistration,db:Session) -> ReceiptResponse:
+def createVehicleRegController(req:Request,vehicleInfo:CreateVehicleRegistration,db:Session) -> ReceiptResponse:
     try:
+        headers = req.headers
+        authorization = headers.get("authorization")
+        if not authorization:
+            logger.warning("Authorization header missing")
+            return JSONResponse(
+                content={"message": "Authorization header missing"},
+                status_code=400
+            )
+        
+        actionByUsername = authorization
+
         if not vehicleInfo.rfidTag:
             logger.warning("Rfid tag required")
             return JSONResponse(
@@ -70,6 +82,13 @@ def createVehicleRegController(vehicleInfo:CreateVehicleRegistration,db:Session)
             )
         
         logger.info(f"Vehicle Registered successfully")
+
+        createVehicleRegLog = createVehicleRegistrationLogs(vehicleInfo,db,actionByUsername)
+        if(createVehicleRegLog):
+            logger.info("Vehicle registration logged successfully")
+        else:
+            logger.info("Logging of Vehicle registration unsuccessful")
+
         return ReceiptResponse(
             rfidTag=tag.rfidTag,
             typeOfVehicle=tag.typeOfVehicle,
@@ -91,8 +110,19 @@ def createVehicleRegController(vehicleInfo:CreateVehicleRegistration,db:Session)
         )
 
 
-def editVehicleRegController(vehicleInfo:EditVehicleRegistration,db:Session) -> SuccessResponse:
+def editVehicleRegController(req:Request,vehicleInfo:EditVehicleRegistration,db:Session) -> SuccessResponse:
     try:
+        headers = req.headers
+        authorization = headers.get("authorization")
+        if not authorization:
+            logger.warning("Authorization header missing")
+            return JSONResponse(
+                content={"message": "Authorization header missing"},
+                status_code=400
+            )
+        
+        actionByUsername = authorization
+
         if not vehicleInfo.rfidTag:
             logger.warning("Rfid tag required")
             return JSONResponse(
@@ -117,6 +147,13 @@ def editVehicleRegController(vehicleInfo:EditVehicleRegistration,db:Session) -> 
             )
         
         logger.info(f"Vehicle Registration updated successfully")
+
+        editLog = editVehicleRegLogs(vehicleInfo,db,actionByUsername)
+        if(editLog):
+            logger.info("Vehicle registration edit logged successfully")
+        else:
+            logger.info("Logging of Vehicle registration edit unsuccessful")
+
         return SuccessResponse(
             message="Vehicle Registration updated successfully"
         )
@@ -128,8 +165,19 @@ def editVehicleRegController(vehicleInfo:EditVehicleRegistration,db:Session) -> 
             status_code=500
         )
 
-def deleteVehicleRegController(vehicleInfo:DeleteVehicleRegistration,db:Session) -> SuccessResponse:
+def deleteVehicleRegController(req:Request,vehicleInfo:DeleteVehicleRegistration,db:Session) -> SuccessResponse:
     try:
+        headers = req.headers
+        authorization = headers.get("authorization")
+        if not authorization:
+            logger.warning("Authorization header missing")
+            return JSONResponse(
+                content={"message": "Authorization header missing"},
+                status_code=400
+            )
+        
+        actionByUsername = authorization
+
         if not vehicleInfo.rfidTag:
             logger.warning("Rfid tag required")
             return JSONResponse(
@@ -154,6 +202,13 @@ def deleteVehicleRegController(vehicleInfo:DeleteVehicleRegistration,db:Session)
             )
         
         logger.info(f"Vehicle deleted successfully")
+
+        delLog = deleteVehicleRegLogs(vehicleInfo,db,actionByUsername)
+        if(delLog):
+            logger.info("Vehicle registration deletion logged successfully")
+        else:
+            logger.info("Logging of Vehicle registration deletion unsuccessful")
+
         return SuccessResponse(
             message="Data has been deleted successfully"
         )
