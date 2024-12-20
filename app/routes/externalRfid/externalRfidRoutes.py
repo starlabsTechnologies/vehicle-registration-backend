@@ -3,10 +3,19 @@ from app.config.db_config import get_db
 from sqlalchemy.orm import Session
 from fastapi import Request
 from app.models.allotedTagsBase import ReceiptResponse
-from app.models.vehicleRegistrationBase import VehicleRegistrationResponse,CreateVehicleRegistration,EditVehicleRegistration,DeleteVehicleRegistration,SuccessResponse
-from app.controllers.externalRfid.externalRfidController import getVehicleRegController,createVehicleRegController,editVehicleRegController,deleteVehicleRegController
+from app.models.vehicleRegistrationBase import FetchRfidResponse,VehicleRegistrationResponse,CreateVehicleRegistration,EditVehicleRegistration,DeleteVehicleRegistration,SuccessResponse
+from app.controllers.externalRfid.externalRfidController import getVehicleRegController,createVehicleRegController,editVehicleRegController,deleteVehicleRegController,fetchVehicleRegControllerwithRfid,getRfidFromServerController
+from fastapi import WebSocket
 
 externalrfid_Router=APIRouter()
+
+@externalrfid_Router.get("/external-rfid-data",response_model=FetchRfidResponse)
+async def increment_and_send_websocket(request:Request,db:Session=Depends(get_db)):
+    return await fetchVehicleRegControllerwithRfid(request,db)
+
+@externalrfid_Router.websocket('/external-rfid-fetch')
+async def fetch(websocket:WebSocket):
+    await getRfidFromServerController(websocket)
 
 @externalrfid_Router.get('/external-rfid/{rfidTag}',response_model=VehicleRegistrationResponse)
 def getVehicleReg(rfidTag:str,db:Session=Depends(get_db)):

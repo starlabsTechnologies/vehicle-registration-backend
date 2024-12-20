@@ -64,6 +64,38 @@ class ValidityWiseFilter(BaseModel):
     timeIn:str
     timeOut:str
 
+class VehicleInResponse(BaseModel):
+    rfidTag:str
+    typeOfVehicle:VehicleTypeEnum
+    vehicleNumber:str
+    validityTill:Optional[str]=None
+    doNumber:Optional[str]=None
+    transporter:Optional[str]=None
+    driverOwner:Optional[str]=None
+    weighbridgeNo:Optional[str]=None
+    visitPurpose:Optional[str]=None
+    placeToVisit:Optional[str]=None
+    personToVisit:Optional[str]=None
+    shift:Optional[str]=None
+    section:Optional[str]=None
+    status:str
+
+class FetchRfidResponseVehicleIn(BaseModel):
+    rfidTag:str
+    typeOfVehicle:Optional[VehicleTypeEnum]=VehicleTypeEnum.TCT
+    vehicleNumber:Optional[str]=None
+    validityTill:Optional[str]=None
+    doNumber:Optional[str]=None
+    transporter:Optional[str]=None
+    driverOwner:Optional[str]=None
+    weighbridgeNo:Optional[str]=None
+    visitPurpose:Optional[str]=None
+    placeToVisit:Optional[str]=None
+    personToVisit:Optional[str]=None
+    shift:Optional[str]=None
+    section:Optional[str]=None
+    status:str
+
 class VehicleInOutResponse(BaseModel):
     rfidTag:str
     typeOfVehicle:VehicleTypeEnum
