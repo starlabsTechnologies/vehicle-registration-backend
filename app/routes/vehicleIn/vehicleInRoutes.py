@@ -6,7 +6,7 @@ from fastapi import Request,WebSocket
 
 vehicleIn_router = APIRouter()
 
-@vehicleIn_router.get("/vehicleIn-rfid-data")
+@vehicleIn_router.post("/vehicleIn-rfid-data")
 async def increment_and_send_websocket(request:Request,db:Session=Depends(get_db)):
     return await fetchVehicleRegControllerwithRfid(request,db)
 

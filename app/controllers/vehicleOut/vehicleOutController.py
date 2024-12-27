@@ -1,7 +1,7 @@
 from app.utils.logger import logger
 from app.utils.webSocketManager.socketManager import WebSocketManager
-from app.models.vehicleInOutBase import FetchRfidResponseVehicleIn
-from app.services.vehicleIn.vehicleInServices import getVehicleIn,updateVehicleInOutLogs
+from app.models.vehicleInOutBase import FetchRfidResponseVehicleOut,RfidTagModel
+from app.services.vehicleOut.vehicleOutServices import getVehicleOut,openBarrier,updateVehicleInOutLogs
 from fastapi import WebSocket, WebSocketDisconnect,Request
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
@@ -30,7 +30,7 @@ async def getRfidFromServerController(websocket: WebSocket) -> None:
             state = connection_states[client_ip]
 
             await state["trigger_event"].wait()
-            await websocket_manager.send_message("trigger_vehicleIn", client_ip)
+            await websocket_manager.send_message("trigger_vehicleOut", client_ip)
             data = await websocket.receive_text()
             logger.info(f"Received message: {data}")
             data_dict = json.loads(data)
@@ -40,7 +40,7 @@ async def getRfidFromServerController(websocket: WebSocket) -> None:
                 logger.info(f"Received RFID: {state['rfid_data']}")
                 state["rfid_event"].set()
 
-            await websocket_manager.send_message("stop_vehicleIn", client_ip)
+            await websocket_manager.send_message("stop_vehicleOut", client_ip)
             logger.info("Sent 'stop' to websocket")
             state["trigger_event"].clear()
 
@@ -51,20 +51,9 @@ async def getRfidFromServerController(websocket: WebSocket) -> None:
 
         await websocket_manager.disconnect(client_ip)
 
-async def fetchVehicleRegControllerwithRfid(request:Request,db:Session) -> FetchRfidResponseVehicleIn:
+async def fetchVehicleRegControllerwithRfid(request:Request,db:Session) -> FetchRfidResponseVehicleOut:
     client_ip = request.client.host
     logger.info(f"Client IP in GET request: {client_ip}")
-
-    headers = request.headers
-    authorization = headers.get("authorization")
-    if not authorization:
-        logger.warning("Authorization header missing")
-        return JSONResponse(
-            content={"message": "Authorization header missing"},
-            status_code=400
-        )
-    
-    actionByUsername = authorization
 
     if client_ip not in connection_states:
         return {"message": "No active WebSocket connection for this IP", "rfidTag": "00000000000000000000000"}
@@ -83,29 +72,62 @@ async def fetchVehicleRegControllerwithRfid(request:Request,db:Session) -> Fetch
         return {"message": "No RFID data received", "rfidTag": None}
 
     try:
-        vehicleIn=getVehicleIn(rfid_data,db)
+        vehicleIn=getVehicleOut(rfid_data,db)
 
         if vehicleIn is None:
             logger.info(f"Fetched rfid tag: {rfid_data}")
-            return FetchRfidResponseVehicleIn(
+            return FetchRfidResponseVehicleOut(
                 rfidTag=rfid_data,
                 status="Vehicle Not Registered"
             )
         
         else:        
             logger.info(f"Fetched vehicle reg with rfid tag: {rfid_data}")
-
-            updateLogs=updateVehicleInOutLogs(rfid_data,db,actionByUsername)
-            if(updateLogs):
-                logger.info("Vehicle In creation logged successfully")
-            else:
-                logger.info("Logging of Vehicle In create unsuccessful")
-                
             return vehicleIn
     
     except Exception as error:
         logger.error(f"Error while fetching data: {error}")
         return JSONResponse(
             content={"message": "Error while fetching data"},
+            status_code=500
+        )
+    
+def openBarrierController(req:Request,rfidData:RfidTagModel,db:Session):
+    try:
+        headers = req.headers
+        authorization = headers.get("authorization")
+        if not authorization:
+            logger.warning("Authorization header missing")
+            return JSONResponse(
+                content={"message": "Authorization header missing"},
+                status_code=400
+            )
+        
+        actionByUsername = authorization
+
+        success=openBarrier(rfidData.rfidTag,db)
+
+        if success is None:
+            logger.warning(f"Vehicle with rfidTag: {rfidData.rfidTag} not found")
+            return JSONResponse(
+                content={"message": f"Vehicle with rfidTag: {rfidData.rfidTag} not found"},
+                status_code=404
+            )
+        
+        logger.info("Barrier Opened Successfully")
+        updateLogs=updateVehicleInOutLogs(rfidData.rfidTag,db,actionByUsername)
+        if(updateLogs):
+            logger.info("Vehicle In Out edit logged successfully")
+        else:
+            logger.info("Logging of Vehicle In Out edit unsuccessful")
+        return JSONResponse(
+            content={"message":"Barrier Opened Successfully"},
+            status_code=200
+        )
+
+    except Exception as error:
+        logger.error(f"Error occured while opening barrier: {error}")
+        return JSONResponse(
+            content={"message": "Error occured while opening barrier"},
             status_code=500
         )
