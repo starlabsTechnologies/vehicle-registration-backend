@@ -1,13 +1,13 @@
-from app.models.vehicleInOutBase import VehicleInOutResponse,SummaryFilter,WeighbridgeWiseFilter,ShiftWiseFilter,DoWiseFilter,VehicleTypeFilter,ValidityWiseFilter,DataFilter,OptionsEnum
+from app.models.vehicleInOutBase import VehicleInOutResponse,SummaryFilter,WeighbridgeWiseFilter,ShiftWiseFilter,DoWiseFilter,VehicleTypeFilter,ValidityWiseFilter,OptionsEnum,PaginatedVehicleInOutResponse
 from app.services.report.reportServices import getSummary,getWeighbridgeWise,getShiftWise,getDoWise,getVehicleType,getValidityWise,getRegistrationDetails,getVehicleInOutData
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
-from app.models.vehicleRegistrationBase import RegistrationDetailsResponse
+from app.models.vehicleRegistrationBase import PaginatedRegResponse
 from typing import List, Union, Optional
 from fastapi import Query
 from app.utils.logger import logger
 
-def setOptionController(db:Session,option: OptionsEnum = Query(None),dateIn: Optional[str] = Query(None),dateOut: Optional[str] = Query(None),timeIn: Optional[str] = Query(None),timeOut: Optional[str] = Query(None)) -> List[Union[VehicleInOutResponse, RegistrationDetailsResponse]]:
+def setOptionController(db:Session,option: OptionsEnum = Query(None),dateIn: Optional[str] = Query(None),dateOut: Optional[str] = Query(None),timeIn: Optional[str] = Query(None),timeOut: Optional[str] = Query(None),page: int = Query(1, ge=1),pageSize: int = Query(10, ge=1, le=100)) -> Union[PaginatedVehicleInOutResponse, PaginatedRegResponse]:
     try:
         if(option == OptionsEnum.Summary):
             filter=SummaryFilter(
@@ -17,7 +17,7 @@ def setOptionController(db:Session,option: OptionsEnum = Query(None),dateIn: Opt
                 timeOut=timeOut
             )
 
-            return getSummaryController(filter,db)
+            return getSummaryController(filter,db,page,pageSize)
         
         elif(option == OptionsEnum.WeighbridgeWise):
             filter=WeighbridgeWiseFilter(
@@ -27,7 +27,7 @@ def setOptionController(db:Session,option: OptionsEnum = Query(None),dateIn: Opt
                 timeOut=timeOut,
             )
 
-            return getWeighbridgeWiseController(filter,db)
+            return getWeighbridgeWiseController(filter,db,page,pageSize)
         
         elif(option == OptionsEnum.ShiftWise):
             filter=ShiftWiseFilter(
@@ -35,7 +35,7 @@ def setOptionController(db:Session,option: OptionsEnum = Query(None),dateIn: Opt
                 dateOut=dateOut,
             )
 
-            return getShiftWiseController(filter,db)
+            return getShiftWiseController(filter,db,page,pageSize)
         
         elif(option == OptionsEnum.DoWise):
             filter=DoWiseFilter(
@@ -45,7 +45,7 @@ def setOptionController(db:Session,option: OptionsEnum = Query(None),dateIn: Opt
                 timeOut=timeOut,
             )
 
-            return getDoWiseController(filter,db)
+            return getDoWiseController(filter,db,page,pageSize)
         
         elif(option == OptionsEnum.VehicleType):
             filter=VehicleTypeFilter(
@@ -55,7 +55,7 @@ def setOptionController(db:Session,option: OptionsEnum = Query(None),dateIn: Opt
                 timeOut=timeOut,
             )
 
-            return getVehicleTypeController(filter,db)
+            return getVehicleTypeController(filter,db,page,pageSize)
         
         elif(option == OptionsEnum.ValidityWise):
             filter=ValidityWiseFilter(
@@ -65,7 +65,7 @@ def setOptionController(db:Session,option: OptionsEnum = Query(None),dateIn: Opt
                 timeOut=timeOut,
             )
 
-            return getValidityWiseController(filter,db)
+            return getValidityWiseController(filter,db,page,pageSize)
         
         else:
             logger.warning("Wrong option Entered")
@@ -81,11 +81,11 @@ def setOptionController(db:Session,option: OptionsEnum = Query(None),dateIn: Opt
             status_code=500
         )
 
-def getSummaryController(filterInfo:SummaryFilter,db:Session) -> List[VehicleInOutResponse]:
+def getSummaryController(filterInfo:SummaryFilter,db:Session,page: int =1,pageSize: int=1) -> PaginatedVehicleInOutResponse:
     try:
-        result=getSummary(filterInfo,db)
+        result=getSummary(filterInfo,db,page,pageSize)
 
-        if (len(result) == 0):
+        if (len(result.data) == 0):
             logger.warning("No data found")
             return JSONResponse(
                 content={"message":"No data found"},
@@ -102,11 +102,11 @@ def getSummaryController(filterInfo:SummaryFilter,db:Session) -> List[VehicleInO
             status_code=500
         )
     
-def getWeighbridgeWiseController(filterInfo:WeighbridgeWiseFilter,db:Session) -> List[VehicleInOutResponse]:
+def getWeighbridgeWiseController(filterInfo:WeighbridgeWiseFilter,db:Session,page: int =1,pageSize: int=1) -> PaginatedVehicleInOutResponse:
     try:
-        result=getWeighbridgeWise(filterInfo,db)
+        result=getWeighbridgeWise(filterInfo,db,page,pageSize)
 
-        if (len(result) == 0):
+        if (len(result.data) == 0):
             logger.warning("No data found")
             return JSONResponse(
                 content={"message":"No data found"},
@@ -123,11 +123,11 @@ def getWeighbridgeWiseController(filterInfo:WeighbridgeWiseFilter,db:Session) ->
             status_code=500
         )
     
-def getShiftWiseController(filterInfo:ShiftWiseFilter,db:Session) -> List[VehicleInOutResponse]:
+def getShiftWiseController(filterInfo:ShiftWiseFilter,db:Session,page: int =1,pageSize: int=1) -> PaginatedVehicleInOutResponse:
     try:
-        result=getShiftWise(filterInfo,db)
+        result=getShiftWise(filterInfo,db,page,pageSize)
 
-        if (len(result) == 0):
+        if (len(result.data) == 0):
             logger.warning("No data found")
             return JSONResponse(
                 content={"message":"No data found"},
@@ -144,11 +144,11 @@ def getShiftWiseController(filterInfo:ShiftWiseFilter,db:Session) -> List[Vehicl
             status_code=500
         )
     
-def getDoWiseController(filterInfo:DoWiseFilter,db:Session) -> List[VehicleInOutResponse]:
+def getDoWiseController(filterInfo:DoWiseFilter,db:Session,page: int =1,pageSize: int=1) -> PaginatedVehicleInOutResponse:
     try:
-        result=getDoWise(filterInfo,db)
+        result=getDoWise(filterInfo,db,page,pageSize)
 
-        if (len(result) == 0):
+        if (len(result.data) == 0):
             logger.warning("No data found")
             return JSONResponse(
                 content={"message":"No data found"},
@@ -165,11 +165,11 @@ def getDoWiseController(filterInfo:DoWiseFilter,db:Session) -> List[VehicleInOut
             status_code=500
         )
     
-def getVehicleTypeController(filterInfo:VehicleTypeFilter,db:Session) -> List[VehicleInOutResponse]:
+def getVehicleTypeController(filterInfo:VehicleTypeFilter,db:Session,page: int =1,pageSize: int=1) -> PaginatedVehicleInOutResponse:
     try:
-        result=getVehicleType(filterInfo,db)
+        result=getVehicleType(filterInfo,db,page,pageSize)
 
-        if (len(result) == 0):
+        if (len(result.data) == 0):
             logger.warning("No data found")
             return JSONResponse(
                 content={"message":"No data found"},
@@ -186,11 +186,11 @@ def getVehicleTypeController(filterInfo:VehicleTypeFilter,db:Session) -> List[Ve
             status_code=500
         )
     
-def getValidityWiseController(filterInfo:ValidityWiseFilter,db:Session) -> List[VehicleInOutResponse]:
+def getValidityWiseController(filterInfo:ValidityWiseFilter,db:Session,page: int =1,pageSize: int=1) -> PaginatedVehicleInOutResponse:
     try:
-        result=getValidityWise(filterInfo,db)
+        result=getValidityWise(filterInfo,db,page,pageSize)
 
-        if (len(result) == 0):
+        if (len(result.data) == 0):
             logger.warning("No data found")
             return JSONResponse(
                 content={"message":"No data found"},
@@ -228,11 +228,11 @@ def getVehicleInOutDataController(db:Session) -> List[VehicleInOutResponse]:
             status_code=500
         )
     
-def getRegistrationDetailsController(db:Session) -> List[RegistrationDetailsResponse]:
+def getRegistrationDetailsController(db:Session,page: int =1,pageSize: int=1) -> PaginatedRegResponse:
     try:
-        result=getRegistrationDetails(db)
+        result=getRegistrationDetails(db,page,pageSize)
 
-        if (len(result) == 0):
+        if (len(result.data) == 0):
             logger.warning("No data found")
             return JSONResponse(
                 content={"message":"No data found"},

@@ -45,7 +45,7 @@ def getVehicleIn(rfidTag:str,db:Session) -> Optional[VehicleInResponse]:
             )
             # latest_in_record = db.query(VehicleInOut).filter_by(rfidTag=rfidTag).order_by(VehicleInOut.dateIn.desc(), VehicleInOut.timeIn.desc()).first()
 
-            print(latest_in_record)
+            # print(latest_in_record)
             if latest_in_record and not latest_in_record.timeOut and not latest_in_record.dateOut:
                 message="Vehicle is already In"
 
