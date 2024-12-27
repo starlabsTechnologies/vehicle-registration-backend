@@ -5,6 +5,7 @@ from app.schema.vehicleRegistration import VehicleRegistration,VehicleTypeEnum
 from app.schema.allotedTags import AllotedTags
 from app.schema.vehicleInOut import VehicleInOut
 from datetime import datetime
+from sqlalchemy import and_
 from app.schema.vehicleInOutLogs import VehicleInOutLogs,ActionsTypeEnum
 
 def getVehicleIn(rfidTag:str,db:Session) -> Optional[VehicleInResponse]:
@@ -28,7 +29,21 @@ def getVehicleIn(rfidTag:str,db:Session) -> Optional[VehicleInResponse]:
             message = "Vehicle's validity till expired"
 
         if message != "Vehicle's validity till expired":
-            latest_in_record = db.query(VehicleInOut).filter_by(rfidTag=rfidTag).order_by(VehicleInOut.dateIn.desc(), VehicleInOut.timeIn.desc()).first()
+            latest_in_record = (
+                db.query(VehicleInOut)
+                .filter(
+                    and_(
+                        VehicleInOut.rfidTag == rfidTag,
+                        VehicleInOut.dateIn.isnot(None),
+                        VehicleInOut.timeIn.isnot(None),
+                        VehicleInOut.dateOut.is_(None),
+                        VehicleInOut.timeOut.is_(None),
+                    )
+                )
+                .order_by(VehicleInOut.dateIn.desc(), VehicleInOut.timeIn.desc())
+                .first()
+            )
+            # latest_in_record = db.query(VehicleInOut).filter_by(rfidTag=rfidTag).order_by(VehicleInOut.dateIn.desc(), VehicleInOut.timeIn.desc()).first()
 
             print(latest_in_record)
             if latest_in_record and not latest_in_record.timeOut and not latest_in_record.dateOut:
