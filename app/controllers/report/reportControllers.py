@@ -3,65 +3,66 @@ from app.services.report.reportServices import getSummary,getWeighbridgeWise,get
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
 from app.models.vehicleRegistrationBase import RegistrationDetailsResponse
-from typing import List, Union
+from typing import List, Union, Optional
+from fastapi import Query
 from app.utils.logger import logger
 
-def setOptionController(filterInfo:DataFilter,db:Session) -> List[Union[VehicleInOutResponse, RegistrationDetailsResponse]]:
+def setOptionController(db:Session,option: OptionsEnum = Query(None),dateIn: Optional[str] = Query(None),dateOut: Optional[str] = Query(None),timeIn: Optional[str] = Query(None),timeOut: Optional[str] = Query(None)) -> List[Union[VehicleInOutResponse, RegistrationDetailsResponse]]:
     try:
-        if(filterInfo.option == OptionsEnum.Summary):
+        if(option == OptionsEnum.Summary):
             filter=SummaryFilter(
-                dateIn=filterInfo.dateIn,
-                dateOut=filterInfo.dateOut,
-                timeIn=filterInfo.timeIn,
-                timeOut=filterInfo.timeOut
+                dateIn=dateIn,
+                dateOut=dateOut,
+                timeIn=timeIn,
+                timeOut=timeOut
             )
 
             return getSummaryController(filter,db)
         
-        elif(filterInfo.option == OptionsEnum.WeighbridgeWise):
+        elif(option == OptionsEnum.WeighbridgeWise):
             filter=WeighbridgeWiseFilter(
-                dateIn=filterInfo.dateIn,
-                dateOut=filterInfo.dateOut,
-                timeIn=filterInfo.timeIn,
-                timeOut=filterInfo.timeOut,
+                dateIn=dateIn,
+                dateOut=dateOut,
+                timeIn=timeIn,
+                timeOut=timeOut,
             )
 
             return getWeighbridgeWiseController(filter,db)
         
-        elif(filterInfo.option == OptionsEnum.ShiftWise):
+        elif(option == OptionsEnum.ShiftWise):
             filter=ShiftWiseFilter(
-                dateIn=filterInfo.dateIn,
-                dateOut=filterInfo.dateOut,
+                dateIn=dateIn,
+                dateOut=dateOut,
             )
 
             return getShiftWiseController(filter,db)
         
-        elif(filterInfo.option == OptionsEnum.DoWise):
+        elif(option == OptionsEnum.DoWise):
             filter=DoWiseFilter(
-                dateIn=filterInfo.dateIn,
-                dateOut=filterInfo.dateOut,
-                timeIn=filterInfo.timeIn,
-                timeOut=filterInfo.timeOut,
+                dateIn=dateIn,
+                dateOut=dateOut,
+                timeIn=timeIn,
+                timeOut=timeOut,
             )
 
             return getDoWiseController(filter,db)
         
-        elif(filterInfo.option == OptionsEnum.VehicleType):
+        elif(option == OptionsEnum.VehicleType):
             filter=VehicleTypeFilter(
-                dateIn=filterInfo.dateIn,
-                dateOut=filterInfo.dateOut,
-                timeIn=filterInfo.timeIn,
-                timeOut=filterInfo.timeOut,
+                dateIn=dateIn,
+                dateOut=dateOut,
+                timeIn=timeIn,
+                timeOut=timeOut,
             )
 
             return getVehicleTypeController(filter,db)
         
-        elif(filterInfo.option == OptionsEnum.ValidityWise):
+        elif(option == OptionsEnum.ValidityWise):
             filter=ValidityWiseFilter(
-                dateIn=filterInfo.dateIn,
-                dateOut=filterInfo.dateOut,
-                timeIn=filterInfo.timeIn,
-                timeOut=filterInfo.timeOut,
+                dateIn=dateIn,
+                dateOut=dateOut,
+                timeIn=timeIn,
+                timeOut=timeOut,
             )
 
             return getValidityWiseController(filter,db)

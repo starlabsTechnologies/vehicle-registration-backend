@@ -7,11 +7,22 @@ from typing import List
 from app.models.vehicleRegistrationBase import RegistrationDetailsResponse
 
 def getSummary(filterInfo:SummaryFilter,db:Session) -> List[VehicleInOutResponse]:
+    # filters = [
+    #     VehicleInOut.dateIn>=filterInfo.dateIn,
+    #     VehicleInOut.dateOut<=filterInfo.dateOut,
+    #     VehicleInOut.timeIn>=filterInfo.timeIn,
+    #     VehicleInOut.timeOut<=filterInfo.timeOut
+    # ]
+
     filters = [
-        VehicleInOut.dateIn>=filterInfo.dateIn,
-        VehicleInOut.dateOut<=filterInfo.dateOut,
-        VehicleInOut.timeIn>=filterInfo.timeIn,
-        VehicleInOut.timeOut<=filterInfo.timeOut
+        condition
+        for key, condition in {
+            "dateIn": VehicleInOut.dateIn >= filterInfo.dateIn,
+            "dateOut": VehicleInOut.dateOut <= filterInfo.dateOut,
+            "timeIn": VehicleInOut.timeIn >= filterInfo.timeIn,
+            "timeOut": VehicleInOut.timeOut <= filterInfo.timeOut,
+        }.items()
+        if getattr(filterInfo, key) != ''
     ]
     
     results=db.query(VehicleInOut).filter(and_(*filters)).all()
@@ -49,11 +60,22 @@ def getSummary(filterInfo:SummaryFilter,db:Session) -> List[VehicleInOutResponse
     ]
 
 def getWeighbridgeWise(filterInfo:WeighbridgeWiseFilter,db:Session) -> List[VehicleInOutResponse]:
+    # filters = [
+    #     VehicleInOut.dateIn>=filterInfo.dateIn,
+    #     VehicleInOut.dateOut<=filterInfo.dateOut,
+    #     VehicleInOut.timeIn>=filterInfo.timeIn,
+    #     VehicleInOut.timeOut<=filterInfo.timeOut
+    # ]
+
     filters = [
-        VehicleInOut.dateIn>=filterInfo.dateIn,
-        VehicleInOut.dateOut<=filterInfo.dateOut,
-        VehicleInOut.timeIn>=filterInfo.timeIn,
-        VehicleInOut.timeOut<=filterInfo.timeOut
+        condition
+        for key, condition in {
+            "dateIn": VehicleInOut.dateIn>=filterInfo.dateIn,
+            "dateOut": VehicleInOut.dateOut<=filterInfo.dateOut,
+            "timeIn": VehicleInOut.timeIn>=filterInfo.timeIn,
+            "timeOut": VehicleInOut.timeOut<=filterInfo.timeOut,
+        }.items()
+        if getattr(filterInfo, key) != ''
     ]
     
     results=db.query(VehicleInOut).filter(and_(*filters)).all()
@@ -91,9 +113,18 @@ def getWeighbridgeWise(filterInfo:WeighbridgeWiseFilter,db:Session) -> List[Vehi
     ]
 
 def getShiftWise(filterInfo:ShiftWiseFilter,db:Session) -> List[VehicleInOutResponse]:
+    # filters = [
+    #     VehicleInOut.dateIn>=filterInfo.dateIn,
+    #     VehicleInOut.dateOut<=filterInfo.dateOut
+    # ]
+
     filters = [
-        VehicleInOut.dateIn>=filterInfo.dateIn,
-        VehicleInOut.dateOut<=filterInfo.dateOut
+        condition
+        for key, condition in {
+            "dateIn": VehicleInOut.dateIn>=filterInfo.dateIn,
+            "dateOut": VehicleInOut.dateOut<=filterInfo.dateOut,
+        }.items()
+        if getattr(filterInfo, key) != ''
     ]
     
     results=db.query(VehicleInOut).filter(and_(*filters)).all()
@@ -131,11 +162,22 @@ def getShiftWise(filterInfo:ShiftWiseFilter,db:Session) -> List[VehicleInOutResp
     ]
 
 def getDoWise(filterInfo:DoWiseFilter,db:Session) -> List[VehicleInOutResponse]:
+    # filters = [
+    #     VehicleInOut.dateIn>=filterInfo.dateIn,
+    #     VehicleInOut.dateOut<=filterInfo.dateOut,
+    #     VehicleInOut.timeIn>=filterInfo.timeIn,
+    #     VehicleInOut.timeOut<=filterInfo.timeOut
+    # ]
+
     filters = [
-        VehicleInOut.dateIn>=filterInfo.dateIn,
-        VehicleInOut.dateOut<=filterInfo.dateOut,
-        VehicleInOut.timeIn>=filterInfo.timeIn,
-        VehicleInOut.timeOut<=filterInfo.timeOut
+        condition
+        for key, condition in {
+            "dateIn": VehicleInOut.dateIn>=filterInfo.dateIn,
+            "dateOut": VehicleInOut.dateOut<=filterInfo.dateOut,
+            "timeIn": VehicleInOut.timeIn>=filterInfo.timeIn,
+            "timeOut": VehicleInOut.timeOut<=filterInfo.timeOut,
+        }.items()
+        if getattr(filterInfo, key) != ''
     ]
     
     results=db.query(VehicleInOut).filter(and_(*filters)).all()
@@ -173,11 +215,22 @@ def getDoWise(filterInfo:DoWiseFilter,db:Session) -> List[VehicleInOutResponse]:
     ]
 
 def getVehicleType(filterInfo:VehicleTypeFilter,db:Session) -> List[VehicleInOutResponse]:
+    # filters = [
+    #     VehicleInOut.dateIn>=filterInfo.dateIn,
+    #     VehicleInOut.dateOut<=filterInfo.dateOut,
+    #     VehicleInOut.timeIn>=filterInfo.timeIn,
+    #     VehicleInOut.timeOut<=filterInfo.timeOut
+    # ]
+
     filters = [
-        VehicleInOut.dateIn>=filterInfo.dateIn,
-        VehicleInOut.dateOut<=filterInfo.dateOut,
-        VehicleInOut.timeIn>=filterInfo.timeIn,
-        VehicleInOut.timeOut<=filterInfo.timeOut
+        condition
+        for key, condition in {
+            "dateIn": VehicleInOut.dateIn>=filterInfo.dateIn,
+            "dateOut": VehicleInOut.dateOut<=filterInfo.dateOut,
+            "timeIn": VehicleInOut.timeIn>=filterInfo.timeIn,
+            "timeOut": VehicleInOut.timeOut<=filterInfo.timeOut,
+        }.items()
+        if getattr(filterInfo, key) != ''
     ]
     
     results=db.query(VehicleInOut).filter(and_(*filters)).all()
@@ -215,11 +268,22 @@ def getVehicleType(filterInfo:VehicleTypeFilter,db:Session) -> List[VehicleInOut
     ]
 
 def getValidityWise(filterInfo:ValidityWiseFilter,db:Session) -> List[VehicleInOutResponse]:
+    # filters = [
+    #     VehicleInOut.dateIn>=filterInfo.dateIn,
+    #     VehicleInOut.dateOut<=filterInfo.dateOut,
+    #     VehicleInOut.timeIn>=filterInfo.timeIn,
+    #     VehicleInOut.timeOut<=filterInfo.timeOut
+    # ]
+
     filters = [
-        VehicleInOut.dateIn>=filterInfo.dateIn,
-        VehicleInOut.dateOut<=filterInfo.dateOut,
-        VehicleInOut.timeIn>=filterInfo.timeIn,
-        VehicleInOut.timeOut<=filterInfo.timeOut
+        condition
+        for key, condition in {
+            "dateIn": VehicleInOut.dateIn>=filterInfo.dateIn,
+            "dateOut": VehicleInOut.dateOut<=filterInfo.dateOut,
+            "timeIn": VehicleInOut.timeIn>=filterInfo.timeIn,
+            "timeOut": VehicleInOut.timeOut<=filterInfo.timeOut,
+        }.items()
+        if getattr(filterInfo, key) != ''
     ]
     
     results=db.query(VehicleInOut).filter(and_(*filters)).all()
