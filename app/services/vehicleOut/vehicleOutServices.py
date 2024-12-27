@@ -43,19 +43,10 @@ def getVehicleOut(rfidTag:str,db:Session) -> Optional[VehicleOutResponse]:
                 .order_by(VehicleInOut.dateIn.desc(), VehicleInOut.timeIn.desc())
                 .first()
             )
-            # latest_out_record = db.query(VehicleInOut).filter_by(rfidTag=rfidTag).order_by(VehicleInOut.dateOut.desc(), VehicleInOut.timeOut.desc()).first()
-            # latest_in_record = db.query(VehicleInOut).filter_by(rfidTag=rfidTag).order_by(VehicleInOut.dateIn.desc(), VehicleInOut.timeIn.desc()).first()
 
             print(latest_record)
             if not latest_record or latest_record.dateOut and latest_record.timeOut:
                 message="Vehicle hasn't been In"
-
-            # else:
-            #     latest_record.dateOut = datetime.now().date(),
-            #     latest_record.timeOut = datetime.now().time() 
-
-            #     db.commit()
-            #     db.refresh(latest_record)
 
     return VehicleOutResponse(
         rfidTag=vehicle.rfidTag,

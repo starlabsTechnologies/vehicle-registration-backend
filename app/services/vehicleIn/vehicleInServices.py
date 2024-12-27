@@ -29,8 +29,6 @@ def getVehicleIn(rfidTag:str,db:Session) -> Optional[VehicleInResponse]:
 
         if message != "Vehicle's validity till expired":
             latest_in_record = db.query(VehicleInOut).filter_by(rfidTag=rfidTag).order_by(VehicleInOut.dateIn.desc(), VehicleInOut.timeIn.desc()).first()
-            # print(latest_in_record.timeOut, latest_in_record.dateOut)
-            # print(latest_in_record.timeIn, latest_in_record.dateIn)
 
             print(latest_in_record)
             if latest_in_record and not latest_in_record.timeOut and not latest_in_record.dateOut:
