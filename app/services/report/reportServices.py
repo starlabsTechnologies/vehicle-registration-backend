@@ -2,11 +2,12 @@ from sqlalchemy import and_
 from sqlalchemy.orm import Session
 from app.schema.vehicleInOut import VehicleInOut
 from app.schema.vehicleRegistration import VehicleRegistration
-from app.models.vehicleInOutBase import VehicleInOutResponse,SummaryFilter,WeighbridgeWiseFilter,ShiftWiseFilter,DoWiseFilter,VehicleTypeFilter,ValidityWiseFilter
+from app.models.vehicleInOutBase import VehicleInOutResponse,SummaryFilter,WeighbridgeWiseFilter,ShiftWiseFilter,DoWiseFilter,VehicleTypeFilter,ValidityWiseFilter,PaginatedVehicleInOutResponse
 from typing import List
-from app.models.vehicleRegistrationBase import RegistrationDetailsResponse
+from app.models.vehicleRegistrationBase import RegistrationDetailsResponse,PaginatedRegResponse
+import math
 
-def getSummary(filterInfo:SummaryFilter,db:Session) -> List[VehicleInOutResponse]:
+def getSummary(filterInfo:SummaryFilter,db:Session,page: int = 1,pageSize: int =1) -> PaginatedVehicleInOutResponse:
     # filters = [
     #     VehicleInOut.dateIn>=filterInfo.dateIn,
     #     VehicleInOut.dateOut<=filterInfo.dateOut,
@@ -24,14 +25,23 @@ def getSummary(filterInfo:SummaryFilter,db:Session) -> List[VehicleInOutResponse
         }.items()
         if getattr(filterInfo, key) != ''
     ]
+
+    offset = (page - 1) * pageSize
+    limit = pageSize
     
-    results=db.query(VehicleInOut).filter(and_(*filters)).all()
+    total_records = db.query(VehicleInOut).filter(and_(*filters)).count()
+
+    results = (db.query(VehicleInOut).filter(and_(*filters)).offset(offset).limit(limit).all())
+
+    total_pages = math.ceil(total_records / pageSize)
+
+    # results=db.query(VehicleInOut).filter(and_(*filters)).all()
     # results=db.query(VehicleInOut).all()
 
     if len(results)==0:
         return []
     
-    return [
+    data = [
         VehicleInOutResponse(
             rfidTag=result.rfidTag,
             typeOfVehicle=result.typeOfVehicle,
@@ -59,7 +69,12 @@ def getSummary(filterInfo:SummaryFilter,db:Session) -> List[VehicleInOutResponse
         ) for result in results
     ]
 
-def getWeighbridgeWise(filterInfo:WeighbridgeWiseFilter,db:Session) -> List[VehicleInOutResponse]:
+    return PaginatedVehicleInOutResponse(
+        totalPages=total_pages,
+        data=data,
+    )
+
+def getWeighbridgeWise(filterInfo:WeighbridgeWiseFilter,db:Session,page: int = 1,pageSize: int =1) -> PaginatedVehicleInOutResponse:
     # filters = [
     #     VehicleInOut.dateIn>=filterInfo.dateIn,
     #     VehicleInOut.dateOut<=filterInfo.dateOut,
@@ -77,14 +92,23 @@ def getWeighbridgeWise(filterInfo:WeighbridgeWiseFilter,db:Session) -> List[Vehi
         }.items()
         if getattr(filterInfo, key) != ''
     ]
+
+    offset = (page - 1) * pageSize
+    limit = pageSize
     
-    results=db.query(VehicleInOut).filter(and_(*filters)).all()
+    total_records = db.query(VehicleInOut).filter(and_(*filters)).count()
+
+    results = (db.query(VehicleInOut).filter(and_(*filters)).offset(offset).limit(limit).all())
+
+    total_pages = math.ceil(total_records / pageSize)
+    
+    # results=db.query(VehicleInOut).filter(and_(*filters)).all()
     # results=db.query(VehicleInOut).all()
 
     if len(results)==0:
         return []
     
-    return [
+    data = [
         VehicleInOutResponse(
             rfidTag=result.rfidTag,
             typeOfVehicle=result.typeOfVehicle,
@@ -112,7 +136,12 @@ def getWeighbridgeWise(filterInfo:WeighbridgeWiseFilter,db:Session) -> List[Vehi
         ) for result in results
     ]
 
-def getShiftWise(filterInfo:ShiftWiseFilter,db:Session) -> List[VehicleInOutResponse]:
+    return PaginatedVehicleInOutResponse(
+        totalPages=total_pages,
+        data=data,
+    )
+
+def getShiftWise(filterInfo:ShiftWiseFilter,db:Session,page: int = 1,pageSize: int =1) -> PaginatedVehicleInOutResponse:
     # filters = [
     #     VehicleInOut.dateIn>=filterInfo.dateIn,
     #     VehicleInOut.dateOut<=filterInfo.dateOut
@@ -126,14 +155,23 @@ def getShiftWise(filterInfo:ShiftWiseFilter,db:Session) -> List[VehicleInOutResp
         }.items()
         if getattr(filterInfo, key) != ''
     ]
+
+    offset = (page - 1) * pageSize
+    limit = pageSize
     
-    results=db.query(VehicleInOut).filter(and_(*filters)).all()
+    total_records = db.query(VehicleInOut).filter(and_(*filters)).count()
+
+    results = (db.query(VehicleInOut).filter(and_(*filters)).offset(offset).limit(limit).all())
+
+    total_pages = math.ceil(total_records / pageSize)
+    
+    # results=db.query(VehicleInOut).filter(and_(*filters)).all()
     # results=db.query(VehicleInOut).all()
 
     if len(results)==0:
         return []
     
-    return [
+    data = [
         VehicleInOutResponse(
             rfidTag=result.rfidTag,
             typeOfVehicle=result.typeOfVehicle,
@@ -161,7 +199,12 @@ def getShiftWise(filterInfo:ShiftWiseFilter,db:Session) -> List[VehicleInOutResp
         ) for result in results
     ]
 
-def getDoWise(filterInfo:DoWiseFilter,db:Session) -> List[VehicleInOutResponse]:
+    return PaginatedVehicleInOutResponse(
+        totalPages=total_pages,
+        data=data,
+    )
+
+def getDoWise(filterInfo:DoWiseFilter,db:Session,page: int = 1,pageSize: int =1) -> PaginatedVehicleInOutResponse:
     # filters = [
     #     VehicleInOut.dateIn>=filterInfo.dateIn,
     #     VehicleInOut.dateOut<=filterInfo.dateOut,
@@ -179,14 +222,23 @@ def getDoWise(filterInfo:DoWiseFilter,db:Session) -> List[VehicleInOutResponse]:
         }.items()
         if getattr(filterInfo, key) != ''
     ]
+
+    offset = (page - 1) * pageSize
+    limit = pageSize
     
-    results=db.query(VehicleInOut).filter(and_(*filters)).all()
+    total_records = db.query(VehicleInOut).filter(and_(*filters)).count()
+
+    results = (db.query(VehicleInOut).filter(and_(*filters)).offset(offset).limit(limit).all())
+
+    total_pages = math.ceil(total_records / pageSize)
+    
+    # results=db.query(VehicleInOut).filter(and_(*filters)).all()
     # results=db.query(VehicleInOut).all()
 
     if len(results)==0:
         return []
     
-    return [
+    data = [
         VehicleInOutResponse(
             rfidTag=result.rfidTag,
             typeOfVehicle=result.typeOfVehicle,
@@ -214,7 +266,12 @@ def getDoWise(filterInfo:DoWiseFilter,db:Session) -> List[VehicleInOutResponse]:
         ) for result in results
     ]
 
-def getVehicleType(filterInfo:VehicleTypeFilter,db:Session) -> List[VehicleInOutResponse]:
+    return PaginatedVehicleInOutResponse(
+        totalPages=total_pages,
+        data=data,
+    )
+
+def getVehicleType(filterInfo:VehicleTypeFilter,db:Session,page: int = 1,pageSize: int =1) -> PaginatedVehicleInOutResponse:
     # filters = [
     #     VehicleInOut.dateIn>=filterInfo.dateIn,
     #     VehicleInOut.dateOut<=filterInfo.dateOut,
@@ -232,14 +289,23 @@ def getVehicleType(filterInfo:VehicleTypeFilter,db:Session) -> List[VehicleInOut
         }.items()
         if getattr(filterInfo, key) != ''
     ]
+
+    offset = (page - 1) * pageSize
+    limit = pageSize
     
-    results=db.query(VehicleInOut).filter(and_(*filters)).all()
+    total_records = db.query(VehicleInOut).filter(and_(*filters)).count()
+
+    results = (db.query(VehicleInOut).filter(and_(*filters)).offset(offset).limit(limit).all())
+
+    total_pages = math.ceil(total_records / pageSize)
+    
+    # results=db.query(VehicleInOut).filter(and_(*filters)).all()
     # results=db.query(VehicleInOut).all()
 
     if len(results)==0:
         return []
     
-    return [
+    data = [
         VehicleInOutResponse(
             rfidTag=result.rfidTag,
             typeOfVehicle=result.typeOfVehicle,
@@ -267,7 +333,12 @@ def getVehicleType(filterInfo:VehicleTypeFilter,db:Session) -> List[VehicleInOut
         ) for result in results
     ]
 
-def getValidityWise(filterInfo:ValidityWiseFilter,db:Session) -> List[VehicleInOutResponse]:
+    return PaginatedVehicleInOutResponse(
+        totalPages=total_pages,
+        data=data,
+    )
+
+def getValidityWise(filterInfo:ValidityWiseFilter,db:Session,page: int = 1,pageSize: int =1) -> PaginatedVehicleInOutResponse:
     # filters = [
     #     VehicleInOut.dateIn>=filterInfo.dateIn,
     #     VehicleInOut.dateOut<=filterInfo.dateOut,
@@ -285,14 +356,23 @@ def getValidityWise(filterInfo:ValidityWiseFilter,db:Session) -> List[VehicleInO
         }.items()
         if getattr(filterInfo, key) != ''
     ]
+
+    offset = (page - 1) * pageSize
+    limit = pageSize
     
-    results=db.query(VehicleInOut).filter(and_(*filters)).all()
+    total_records = db.query(VehicleInOut).filter(and_(*filters)).count()
+
+    results = (db.query(VehicleInOut).filter(and_(*filters)).offset(offset).limit(limit).all())
+
+    total_pages = math.ceil(total_records / pageSize)
+    
+    # results=db.query(VehicleInOut).filter(and_(*filters)).all()
     # results=db.query(VehicleInOut).all()
 
     if len(results)==0:
         return []
     
-    return [
+    data = [
         VehicleInOutResponse(
             rfidTag=result.rfidTag,
             typeOfVehicle=result.typeOfVehicle,
@@ -319,6 +399,11 @@ def getValidityWise(filterInfo:ValidityWiseFilter,db:Session) -> List[VehicleInO
             challanNo=result.challanNo
         ) for result in results
     ]
+
+    return PaginatedVehicleInOutResponse(
+        totalPages=total_pages,
+        data=data,
+    )
 
 def getVehicleInOutData(db:Session) -> List[VehicleInOutResponse]:
     results=db.query(VehicleInOut).all()
@@ -354,13 +439,22 @@ def getVehicleInOutData(db:Session) -> List[VehicleInOutResponse]:
         ) for result in results
     ]
 
-def getRegistrationDetails(db:Session) -> List[RegistrationDetailsResponse]:
-    results=db.query(VehicleRegistration).all()
+def getRegistrationDetails(db:Session,page: int = 1,pageSize: int =1) -> PaginatedRegResponse:
+    # results=db.query(VehicleRegistration).all()
+
+    offset = (page - 1) * pageSize
+    limit = pageSize
+    
+    total_records = db.query(VehicleRegistration).count()
+
+    results = (db.query(VehicleRegistration)).offset(offset).limit(limit).all()
+
+    total_pages = math.ceil(total_records / pageSize)
 
     if len(results)==0:
         return []
     
-    return [
+    data = [
         RegistrationDetailsResponse(
             rfidTag=result.rfidTag,
             typeOfVehicle=result.typeOfVehicle,
@@ -381,3 +475,8 @@ def getRegistrationDetails(db:Session) -> List[RegistrationDetailsResponse]:
             loading=result.loading,
         ) for result in results
     ]
+
+    return PaginatedRegResponse(
+        totalPages=total_pages,
+        data=data,
+    )

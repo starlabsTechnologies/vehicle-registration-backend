@@ -44,7 +44,7 @@ def getVehicleOut(rfidTag:str,db:Session) -> Optional[VehicleOutResponse]:
                 .first()
             )
 
-            print(latest_record)
+            # print(latest_record)
             if not latest_record or latest_record.dateOut and latest_record.timeOut:
                 message="Vehicle hasn't been In"
 

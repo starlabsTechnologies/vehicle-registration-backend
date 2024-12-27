@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field,root_validator
 from enum import Enum
-from typing import Optional
+from typing import Optional,List
 from datetime import datetime
 
 class VehicleTypeEnum(str,Enum):  # Using Python's Enum class
@@ -47,6 +47,10 @@ class RegistrationDetailsResponse(BaseModel):
     user:Optional[str]=None
     shift:Optional[str]=None
     loading:Optional[str]=None
+
+class PaginatedRegResponse(BaseModel):
+    totalPages:Optional[int] = 0
+    data: List[RegistrationDetailsResponse]
 
 class SuccessResponse(BaseModel):
     message:str

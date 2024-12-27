@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from enum import Enum
-from typing import Optional
+from typing import Optional,List
 
 class VehicleTypeEnum(str,Enum):  # Using Python's Enum class
     TCT = "TCT"
@@ -158,3 +158,7 @@ class VehicleInOutResponse(BaseModel):
 
     class Config:
         orm_mode = True
+
+class PaginatedVehicleInOutResponse(BaseModel):
+    totalPages:Optional[int] = 0
+    data: List[VehicleInOutResponse]
