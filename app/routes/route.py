@@ -9,6 +9,7 @@ from app.routes.externalRfid.externalRfidRoutes import externalrfid_Router
 from app.routes.report.reportRoutes import report_router
 from app.routes.vehicleIn.vehicleInRoutes import vehicleIn_router
 from app.routes.vehicleOut.vehicleOutRoutes import vehicleOut_router
+from app.routes.dueAmount.dueAmountRoute import dueAmount_router
 
 router = APIRouter()
 
@@ -29,3 +30,5 @@ router.include_router(vehicleIn_router,prefix='/api')
 router.include_router(vehicleOut_router,prefix='/api')
 
 router.include_router(report_router,prefix='/api')
+
+router.include_router(dueAmount_router,prefix='/api')
