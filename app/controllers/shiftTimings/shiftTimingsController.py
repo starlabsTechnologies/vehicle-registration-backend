@@ -2,7 +2,7 @@ from app.services.shiftTimings.shiftTimingServices import getShifts, updateShift
 from app.models.shiftTimingBase import ShiftTimingResponse,ShiftTimingUpdate
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from typing import List
 from app.utils.logger import logger
 from fastapi import Request
@@ -51,14 +51,14 @@ def updateShiftTimingsController(req:Request,db:Session,shift_timings: List[Shif
             if ((time_diff.total_seconds() < 0) and ((from_datetime.hour+8)>24)):
                 time_diff = timedelta(days=1) + time_diff 
 
-            if(time_diff < timedelta(hours=7,minutes=59,seconds=59)):
+            if(time_diff != timedelta(hours=7,minutes=59,seconds=59)):
                 logger.warning("Time difference should be exactly 8 hours")
                 return JSONResponse(
                     content={"message": "Time difference should be exactly 8 hours"},
                     status_code=400
                 )
             
-            if(previous_end_time and shifts.from_time<=previous_end_time):
+            if(previous_end_time and shifts.from_time<=previous_end_time and shifts.from_time!=time(0,0,0)):
                 logger.warning("Shift timings shouldnot overlap")
                 return JSONResponse(
                     content={"message": "Shift timings shouldnot overlap"},
