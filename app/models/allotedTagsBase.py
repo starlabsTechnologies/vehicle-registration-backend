@@ -11,6 +11,9 @@ class VehicleTypeEnum(str,Enum):  # Using Python's Enum class
     TDBEV = "TDBEV"
     SCRAPE = "SCRAPE"
 
+class DueAmount(BaseModel):
+    due:str
+
 class BlockUser(BaseModel):
     rfidTag:str
     vehicleNo:str

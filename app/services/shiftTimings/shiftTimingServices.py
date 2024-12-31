@@ -1,7 +1,9 @@
+from sqlalchemy import and_
 from sqlalchemy.orm import Session
 from app.schema.shiftTiming import ShiftTiming
 from app.models.shiftTimingBase import ShiftTimingResponse,ShiftTimingUpdate
 from app.schema.shiftTimingLogs import ShiftTimingLogs
+from datetime import datetime
 from typing import List
 from enum import Enum
 
@@ -9,6 +11,23 @@ class ActionsTypeEnum(Enum):  # Using Python's Enum class
     DELETED = "DELETED"
     CREATED = "CREATED"
     EDITED = "EDITED"
+
+def getCurrentShift(db:Session) -> ShiftTimingResponse:
+    current_time = datetime.now().time()
+
+    shift = db.query(ShiftTiming).filter(and_(ShiftTiming.from_time <= current_time,ShiftTiming.to_time >= current_time)).first()
+
+    if shift is None:
+        return None
+    
+    return ShiftTimingResponse(
+        id=str(shift.id),
+        shift_name=shift.shift_name,
+        from_time=shift.from_time,
+        to_time=shift.to_time,
+        createdAt=shift.createdAt,
+        updatedAt=shift.updatedAt
+    )
 
 def getShifts(db:Session) -> List[ShiftTimingResponse] :
     shift_timings=db.query(ShiftTiming).all()

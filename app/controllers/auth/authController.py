@@ -1,10 +1,8 @@
-from app.services.auth.authServices import getUserByUserName,logUserIn, createUser,deleteUserByUsername,authorizeUser,AuthResult,logCreateUser,logDeleteUser
-from app.models.userInfoBase import AuthorizeUser,UserInfoResponse,UserLogin,CreateUser,SuccessResponse,AuthResponse
-# from app.schema.userInfo import UserInfo,AuthTypeEnum
+from app.services.auth.authServices import getUserByUserName,logUserIn, createUser,deleteUserByUsername,authorizeUser,AuthResult,logCreateUser,logDeleteUser,logUserOut
+from app.models.userInfoBase import AuthorizeUser,UserInfoResponse,UserLogout,CreateUser,SuccessResponse,AuthResponse
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
 from app.utils.logger import logger
-from typing import Annotated
 from fastapi import Header,Request
 
 def authorizeUserController(userInfo:AuthorizeUser,db:Session) -> AuthResponse:
@@ -45,7 +43,7 @@ def authorizeUserController(userInfo:AuthorizeUser,db:Session) -> AuthResponse:
             status_code=500
         )
 
-def logUserInController(userInfo:UserLogin,db:Session) -> UserInfoResponse:
+def logUserInController(userInfo:AuthorizeUser,db:Session) -> UserInfoResponse:
     try:
         user=logUserIn(userInfo.username,userInfo.password,db)
 
@@ -63,7 +61,7 @@ def logUserInController(userInfo:UserLogin,db:Session) -> UserInfoResponse:
                 status_code=401
             )
         
-        logger.info("User logged in")
+        logger.info(f"{userInfo.username} logged in")
         user.message = "User logged in"
         return user
     
@@ -71,6 +69,30 @@ def logUserInController(userInfo:UserLogin,db:Session) -> UserInfoResponse:
         logger.error(f"Error while logging user in: {error}")
         return JSONResponse(
             content={"message": "Error while logging user in"},
+            status_code=500
+        )
+    
+def logUserOutController(userInfo:UserLogout,db:Session) -> JSONResponse:
+    try:
+        logout=logUserOut(userInfo.username,db)
+
+        if logout is None:
+            logger.warning(f"User with username: {userInfo.username} not found")
+            return JSONResponse(
+                content={"message": "User Not Found"},
+                status_code=404
+            )
+        
+        logger.info(f"{userInfo.username} logged out")
+
+        return JSONResponse(
+            content={"message": "User Logged Out"},
+            status_code=200
+        )
+    except Exception as error:
+        logger.error(f"Error while logging user out: {error}")
+        return JSONResponse(
+            content={"message": "Error while logging user out"},
             status_code=500
         )
 

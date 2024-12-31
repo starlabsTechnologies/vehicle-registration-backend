@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.schema.userInfo import UserInfo, AuthTypeEnum
+from app.schema.userInfo import UserInfo, AuthTypeEnum, ActiveStatusTypeEnum
 from app.schema.userInfoLogs import UserInfoLogs
 from app.models.userInfoBase import UserInfoResponse,CreateUser
 import bcrypt
@@ -70,9 +70,24 @@ def logUserIn(username:str,password:str,db:Session) -> Union[UserInfoResponse, b
     result=bcrypt.checkpw(bytes_password,hashed_password)
 
     if result:
+        db_user.status = ActiveStatusTypeEnum.ACTIVE.name
+        db.commit()
+        db.refresh(db_user)
         return user
     
     return False
+
+def logUserOut(username:str,db:Session) -> bool:
+    user=db.query(UserInfo).filter_by(username=username).one_or_none()
+
+    if user is None:
+        return None
+    
+    user.status = ActiveStatusTypeEnum.LOGOUT.name
+    db.commit()
+    db.refresh(user)
+
+    return True
 
 def createUser(userInfo: CreateUser,db:Session) -> bool: 
     bytes_password = userInfo.password.encode('utf-8')

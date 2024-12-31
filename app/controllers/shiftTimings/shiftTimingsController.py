@@ -1,4 +1,4 @@
-from app.services.shiftTimings.shiftTimingServices import getShifts, updateShifts,updateShiftTimingsLogs
+from app.services.shiftTimings.shiftTimingServices import getShifts, updateShifts,updateShiftTimingsLogs,getCurrentShift
 from app.models.shiftTimingBase import ShiftTimingResponse,ShiftTimingUpdate
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
@@ -6,6 +6,27 @@ from datetime import datetime, timedelta, time
 from typing import List
 from app.utils.logger import logger
 from fastapi import Request
+
+def currentShiftTimingController(db:Session) -> ShiftTimingResponse:
+    try:
+        shift = getCurrentShift(db)
+
+        if not shift:
+            logger.warning("Current Shift Not Found")
+            return JSONResponse(
+                    content={"message": "Current Shift Not Found"},
+                    status_code=404
+                )
+        
+        logger.info("Current Shift fetched successfully")
+        return shift
+    
+    except Exception as error:
+        logger.error(f"Error occurred while fetching current shift: {error}")
+        return JSONResponse(
+            content={"message": "Error occurred while fetching current shift"},
+            status_code=500
+        )
 
 def getShiftTimingsController(db:Session) -> List[ShiftTimingResponse] :
     try:

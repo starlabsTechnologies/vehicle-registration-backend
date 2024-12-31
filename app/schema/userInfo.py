@@ -13,6 +13,12 @@ class AuthTypeEnum(PyEnum):  # Using Python's Enum class
     USER = "User"
     MASTER = "Master"
 
+class ActiveStatusTypeEnum(PyEnum):
+    ACTIVE = "active"
+    LOGOUT = "logout"
+    DELETED = "deleted"
+    DEACTIVATED = "deactivated"
+
 # Step 2: Define the Model
 class UserInfo(Base):
     __tablename__ = "user_info"
@@ -28,6 +34,7 @@ class UserInfo(Base):
     Address = Column(String(255), nullable=True)
     mobileNumber = Column(String(255), nullable=True)
     organisation = Column(String(255), nullable=True)
+    status = Column(Enum(ActiveStatusTypeEnum),nullable=False, default=ActiveStatusTypeEnum.LOGOUT)
 
     createdAt = Column(DateTime, default=datetime.utcnow)
     updatedAt = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

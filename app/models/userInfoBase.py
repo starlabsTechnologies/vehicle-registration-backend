@@ -7,6 +7,12 @@ class AuthTypeEnum(str,Enum):
     USER = "User"
     MASTER = "Master"
 
+class ActiveStatusTypeEnum(str,Enum):
+    ACTIVE = "active"
+    LOGOUT = "logout"
+    DELETED = "deleted"
+    DEACTIVATED = "deactivated"
+
 class AuthorizeUser(BaseModel):
     username:str
     password:str
@@ -18,9 +24,8 @@ class AuthResponse(BaseModel):
     message:str
     isAuthorized:Optional[bool]=False
 
-class UserLogin(BaseModel):
+class UserLogout(BaseModel):
     username:str
-    password:str
 
 class CreateUser(BaseModel):
     username:str
