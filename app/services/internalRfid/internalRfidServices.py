@@ -20,17 +20,33 @@ def generate_transaction_id(vehicle_no):
     random_string = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
     return f"{vehicle_no}{random_string}"
 
-def getVehicleReg(rfidTag:str,db:Session) -> Optional[VehicleRegistrationResponse]:
-    tag=db.query(AllotedTags).filter_by(rfidTag=rfidTag).one_or_none()
-    vehicle=db.query(VehicleRegistration).filter_by(rfidTag=rfidTag).one_or_none()
+def getVehicleReg(rfidTag: str, db: Session) -> Optional[VehicleRegistrationResponse]:
+    tag = db.query(AllotedTags).filter_by(rfidTag=rfidTag).one_or_none()
+    vehicle = db.query(VehicleRegistration).filter_by(rfidTag=rfidTag).one_or_none()
 
     if vehicle is None:
-        return None
+        if tag is None:
+            return VehicleRegistrationResponse(
+                rfidTag=rfidTag,
+                typeOfVehicle="TCT",  # Assuming VehicleTypeEnum has a None or default option
+                vehicleNumber="",
+                doNumber=None,
+                transporter=None,
+                driverOwner=None,
+                weighbridgeNo=None,
+                visitPurpose=None,
+                placeToVisit=None,
+                personToVisit=None,
+                validityTill=None,
+                section=None,
+                registerDate="",
+                registerTime="",
+                message="Vehicle not alloted"
+            )
+        else:
+            return None  # This case shouldn't happen if logic is consistent, but included for completeness
     
-    if tag is None:
-        message = "Not Allocated"
-    else:
-        message = "Allocated"
+    message = "Not Allocated" if tag is None else "Allocated"
 
     return VehicleRegistrationResponse(
         rfidTag=vehicle.rfidTag,
