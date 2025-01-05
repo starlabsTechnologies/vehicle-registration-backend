@@ -138,15 +138,23 @@ async def fetchVehicleRegControllerwithRfid(request:Request,db:Session) -> Fetch
             status_code=500
         )
 
-def getVehicleRegController(rfidTag:str,db:Session) -> VehicleRegistrationResponse:
+def getVehicleRegController(rfidTag: str, db: Session) -> VehicleRegistrationResponse:
     try:
-        vehicleReg=getVehicleReg(rfidTag,db)
+        vehicleReg = getVehicleReg(rfidTag, db)
 
         if vehicleReg is None:
             logger.warning(f"Vehicle Registration for rfid tag {rfidTag} not found")
             return JSONResponse(
-                content={"message":"Vehicle Registration not found."},
+                content={"message": "Vehicle Registration not found."},
                 status_code=404
+            )
+        
+        # If message is "Vehicle not alloted", handle it specifically
+        if vehicleReg.message == "Vehicle not alloted":
+            logger.info(f"Vehicle with rfid tag {rfidTag} is not alloted")
+            return JSONResponse(
+                content={"message": vehicleReg.message},
+                status_code=404  # or another status code if you prefer
             )
         
         logger.info(f"Fetched vehicle reg with rfid tag: {rfidTag}")
