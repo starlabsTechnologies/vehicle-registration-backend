@@ -115,7 +115,7 @@ async def fetchVehicleRegControllerwithRfid(request:Request,db:Session) -> Fetch
         tag=getAllotedTag(rfid_data,db)
 
         if tag is None:
-            message="Not Alloted"
+            message="Vehicle is Not Alloted and Registered"
         else:
             message="Vehicle is Already Alloted and Registered"
 
@@ -145,7 +145,7 @@ def getVehicleRegController(rfidTag: str, db: Session) -> VehicleRegistrationRes
         if vehicleReg is None:
             logger.warning(f"Vehicle Registration for rfid tag {rfidTag} not found")
             return JSONResponse(
-                content={"message": "Vehicle Registration not found."},
+                content={"message": "Vehicle Not Registered"},
                 status_code=404
             )
         
@@ -366,7 +366,7 @@ def deleteVehicleRegController(req:Request,vehicleInfo:DeleteVehicleRegistration
         if success is None:
             logger.warning(f"Vehicle Registration for rfid tag {vehicleInfo.rfidTag} not found")
             return JSONResponse(
-                content={"message":"Vehicle Registration not found."},
+                content={"message":"Vehicle Not Registered"},
                 status_code=404
             )
         

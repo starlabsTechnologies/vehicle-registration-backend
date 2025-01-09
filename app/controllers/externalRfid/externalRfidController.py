@@ -102,7 +102,7 @@ def getVehicleRegController(rfidTag:str,db:Session) -> VehicleRegistrationRespon
         if vehicleReg is None:
             logger.warning(f"Vehicle Registration for rfid tag {rfidTag} not found")
             return JSONResponse(
-                content={"message":"Vehicle Registration not found."},
+                content={"message":"Vehicle Not Registered"},
                 status_code=404
             )
         
@@ -231,7 +231,7 @@ def editVehicleRegController(req:Request,vehicleInfo:EditVehicleRegistration,db:
         if edited is None:
             logger.warning(f"Vehicle Registration for rfid tag {vehicleInfo.rfidTag} not found")
             return JSONResponse(
-                content={"message":"Vehicle Registration not found."},
+                content={"message":"Vehicle Not Registered"},
                 status_code=404
             )
         
@@ -279,7 +279,7 @@ def deleteVehicleRegController(req:Request,vehicleInfo:DeleteVehicleRegistration
         if success is None:
             logger.warning(f"Vehicle Registration for rfid tag {vehicleInfo.rfidTag} not found")
             return JSONResponse(
-                content={"message":"Vehicle Registration not found."},
+                content={"message":"Vehicle Not Registered"},
                 status_code=404
             )
         
