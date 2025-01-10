@@ -21,50 +21,31 @@ def generate_transaction_id(vehicle_no):
     return f"{vehicle_no}{random_string}"
 
 def getVehicleReg(rfidTag: str, db: Session) -> Optional[VehicleRegistrationResponse]:
-    tag = db.query(AllotedTags).filter_by(rfidTag=rfidTag).one_or_none()
-    vehicle = db.query(VehicleRegistration).filter_by(rfidTag=rfidTag).one_or_none()
-
+    vehicle = db.query(VehicleRegistration).filter_by(rfidTag=rfidTag).first()
     if vehicle is None:
-        if tag is None:
-            return VehicleRegistrationResponse(
-                rfidTag=rfidTag,
-                typeOfVehicle="TCT",  # Assuming VehicleTypeEnum has a None or default option
-                vehicleNumber="",
-                doNumber=None,
-                transporter=None,
-                driverOwner=None,
-                weighbridgeNo=None,
-                visitPurpose=None,
-                placeToVisit=None,
-                personToVisit=None,
-                validityTill=None,
-                section=None,
-                registerDate="",
-                registerTime="",
-                message="Vehicle not alloted"
-            )
-        else:
-            return None  # This case shouldn't happen if logic is consistent, but included for completeness
-    
-    message = "Not Allocated" if tag is None else "Allocated"
-
-    return VehicleRegistrationResponse(
-        rfidTag=vehicle.rfidTag,
-        typeOfVehicle=vehicle.typeOfVehicle,
-        vehicleNumber=vehicle.vehicleNumber,
-        doNumber=vehicle.doNumber,
-        transporter=vehicle.transporter,
-        driverOwner=vehicle.driverOwner,
-        weighbridgeNo=vehicle.weighbridgeNo,
-        visitPurpose=vehicle.visitPurpose,
-        placeToVisit=vehicle.placeToVisit,
-        personToVisit=vehicle.personToVisit,
-        validityTill=vehicle.validityTill,
-        section=vehicle.section,
-        registerDate=vehicle.registerDate,
-        registerTime=vehicle.registerTime,
-        message=message
-    )
+        return None  # Return None if the vehicle is not registered
+    else:
+        # Fetch tag if you need it for message or other details
+        tag = db.query(AllotedTags).filter_by(rfidTag=rfidTag).first()
+        message = "Not Allocated" if tag is None else "Allocated"
+        
+        return VehicleRegistrationResponse(
+            rfidTag=vehicle.rfidTag,
+            typeOfVehicle=vehicle.typeOfVehicle,
+            vehicleNumber=vehicle.vehicleNumber,
+            doNumber=vehicle.doNumber,
+            transporter=vehicle.transporter,
+            driverOwner=vehicle.driverOwner,
+            weighbridgeNo=vehicle.weighbridgeNo,
+            visitPurpose=vehicle.visitPurpose,
+            placeToVisit=vehicle.placeToVisit,
+            personToVisit=vehicle.personToVisit,
+            validityTill=vehicle.validityTill,
+            section=vehicle.section,
+            registerDate=vehicle.registerDate,
+            registerTime=vehicle.registerTime,
+            message=message
+        )
 
 def createVehicleReg(vehicleInfo:CreateVehicleRegistration,db:Session) -> bool:
     newReg=VehicleRegistration(
