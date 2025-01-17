@@ -42,6 +42,9 @@ class ReceiptResponse(BaseModel):
     rfidTag:str
     typeOfVehicle:VehicleTypeEnum
     vehicleNumber:str
+    salesOrder: str  # Add this field
+    transationId: str  # Add this field if it's not already there
+    total:str
     regDate:str
     regTime:str  
     userid:str
