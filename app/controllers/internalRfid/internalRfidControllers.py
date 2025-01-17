@@ -175,7 +175,7 @@ def getVehicleRegController(rfidTag: str, db: Session) -> VehicleRegistrationRes
             status_code=500
         )
 
-def createVehicleRegController(req:Request,vehicleInfo:CreateVehicleRegistration,db:Session) -> Union[ReceiptResponse,NewAllotedReceiptResponse]:
+def createVehicleRegController(req:Request, vehicleInfo:CreateVehicleRegistration, db:Session) -> Union[ReceiptResponse,NewAllotedReceiptResponse]:
     try:
         headers = req.headers
         authorization = headers.get("authorization")
@@ -209,7 +209,7 @@ def createVehicleRegController(req:Request,vehicleInfo:CreateVehicleRegistration
                 status_code=400
             )
 
-        vehicleReg=getVehicleReg(vehicleInfo.rfidTag,db)
+        vehicleReg = getVehicleReg(vehicleInfo.rfidTag, db)
 
         if vehicleReg is not None:
             logger.warning(f"Vehicle with Rfid Tag {vehicleInfo.rfidTag} already exists")
@@ -218,19 +218,20 @@ def createVehicleRegController(req:Request,vehicleInfo:CreateVehicleRegistration
                 status_code=400
             )
         
-        tag=getAllotedTag(vehicleInfo.rfidTag,db)
+        tag = getAllotedTag(vehicleInfo.rfidTag, db)
 
         if tag is None:
-            newTag=createAllotedTag(vehicleInfo,db)
+            # Here we create a new tag and get transactionId and salesOrder
+            newTag = createAllotedTag(vehicleInfo, db)
 
             if newTag:
-                createLog = createAllotedTagsLogs(vehicleInfo,db,actionByUsername)
-                if(createLog):
+                createLog = createAllotedTagsLogs(vehicleInfo, db, actionByUsername)
+                if createLog:
                     logger.info("Alloted Tag create logged successfully")
                 else:
                     logger.info("Logging of Alloted Tag creation unsuccessful")
 
-                newReg=createVehicleReg(vehicleInfo,db)
+                newReg = createVehicleReg(vehicleInfo, db)
 
                 if not newReg:
                     logger.warning("Error occurred registering vehicle")
@@ -241,14 +242,28 @@ def createVehicleRegController(req:Request,vehicleInfo:CreateVehicleRegistration
                 
                 logger.info(f"Vehicle Registered successfully")
 
-                createVehicleRegLog = createVehicleRegistrationLogs(vehicleInfo,db,actionByUsername)
-                if(createVehicleRegLog):
+                createVehicleRegLog = createVehicleRegistrationLogs(vehicleInfo, db, actionByUsername)
+                if createVehicleRegLog:
                     logger.info("Vehicle registration logged successfully")
                 else:
                     logger.info("Logging of Vehicle registration unsuccessful")
 
-                newTag.message = "Vehicle Registered successfully"
-                return newTag
+                # Modify the response to include transactionId and salesOrder
+                return ReceiptResponse(
+                    rfidTag=newTag.rfidTag,
+                    typeOfVehicle=newTag.typeOfVehicle,
+                    vehicleNumber=newTag.vehicleNumber,
+                    salesOrder=newTag.salesOrder,  # This is the salesOrderId
+                    transationId=newTag.transationId,  # This is the transactionId
+                    userid=newTag.userid,
+                    barrierGate=newTag.barrierGate,
+                    salesType=newTag.salesType,
+                    total=newTag.total,
+                    due=newTag.due,
+                    regDate=newTag.regDate,
+                    regTime=newTag.regTime,
+                    message="Vehicle Registered successfully"
+                )
         
             else:
                 logger.warning("Error occurred while Alloting Tag")
@@ -257,7 +272,9 @@ def createVehicleRegController(req:Request,vehicleInfo:CreateVehicleRegistration
                     status_code=400
                 )
         
-        newReg=createVehicleReg(vehicleInfo,db)
+        # If the tag already exists, you might want to handle this case or return an error
+        # For simplicity, I'll assume you want to register the vehicle even if the tag exists
+        newReg = createVehicleReg(vehicleInfo, db)
 
         if not newReg:
             logger.warning("Error occurred registering vehicle")
@@ -268,22 +285,25 @@ def createVehicleRegController(req:Request,vehicleInfo:CreateVehicleRegistration
         
         logger.info(f"Vehicle Registered successfully")
 
-        createVehicleRegLog = createVehicleRegistrationLogs(vehicleInfo,db,actionByUsername)
-        if(createVehicleRegLog):
+        createVehicleRegLog = createVehicleRegistrationLogs(vehicleInfo, db, actionByUsername)
+        if createVehicleRegLog:
             logger.info("Vehicle registration logged successfully")
         else:
             logger.info("Logging of Vehicle registration unsuccessful")
 
+        # Return with existing tag info, including transactionId and salesOrder
         return ReceiptResponse(
             rfidTag=tag.rfidTag,
             typeOfVehicle=tag.typeOfVehicle,
             vehicleNumber=tag.vehicleNumber,
-            regDate=tag.regDate,
-            regTime=tag.regTime,
+            salesOrder=tag.salesOrder,
+            transationId=tag.transationId,
             userid=tag.userid,
             barrierGate=tag.barrierGate,
             salesType=tag.salesType,
             due=tag.due,
+            regDate=tag.regDate,
+            regTime=tag.regTime,
             message="Vehicle Registered successfully"
         )
     
